@@ -97,7 +97,7 @@ function Utils.ValidUlt(target)
   local TargetAi = target.AsAI
   if TargetAi and TargetAi.IsValid then
     local KindredUlt = TargetAi:GetBuff("kindredrnodeathbuff")
-    local TryndUlt = TargetAi:GetBuff("undyingrage") --idk if  HasUndyingBuff() doing the same thing
+    local TryndUlt = TargetAi:GetBuff("undyingrage") --idk if  HasUndyingBuff() do the same thing
     local KayleUlt = TargetAi:GetBuff("judicatorintervention") -- still this name ?
     local ZileanUlt = TargetAi:GetBuff("chronoshift") -- in case you are 2 zilean in the same team in some game mode
 
@@ -263,16 +263,12 @@ function Zilean.Logic.Auto()
 end
 
 function Zilean.OnTick()
-  -- Check if game is available to do anything
   if not Utils.IsGameAvailable() then return false end
 
-  -- Get current orbwalker mode
   local OrbwalkerMode = Orbwalker.GetMode()
 
-  -- Get the right logic func
   local OrbwalkerLogic = Zilean.Logic[OrbwalkerMode]
 
-  -- Do we have a callback for the orbwalker mode?
   if OrbwalkerLogic then
     if OrbwalkerLogic() then return true end
   end
