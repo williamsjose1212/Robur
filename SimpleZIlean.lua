@@ -32,9 +32,7 @@ local Events = Enums.Events
 local HitChance = Enums.HitChance
 
 local Nav = CoreEx.Nav
-
 local Zilean = {}
-
 local loaded = false
 
 Zilean.Q = SpellLib.Skillshot({
