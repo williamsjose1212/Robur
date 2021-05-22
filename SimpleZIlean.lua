@@ -41,7 +41,7 @@ Zilean.Q = SpellLib.Skillshot({
   Radius = 100,
   Type = "Circular",
   Collisions = {WindWall = true},
-  Delay = 0.350,
+  Delay = 0.250,
   Key = "Q"
 })
 
@@ -363,6 +363,13 @@ function Zilean.Logic.Waveclear()
 end
 
 function Zilean.Logic.Auto()
+  if Menu.Get("Misc.AutoCC") then
+    for k,v in pairs(Utils.GetTargets(Zilean.Q)) do
+      if not v.CanMove and Zilean.Q:IsReady() then
+        if Zilean.Q:CastOnHitChance(v,Enums.HitChance.Immobile) then return true end
+      end
+    end
+  end
   if Zilean.R:IsReady() and Menu.Get("Auto.R") then
     for _, v in pairs(ObjectManager.GetNearby("ally","heroes")) do
       local hero = v.AsHero
@@ -416,6 +423,7 @@ function Zilean.OnProcessSpell(sender,spell)
   end
   return false
 end
+
 function Zilean.OnDraw()
   if Player.IsVisible and Player.IsOnScreen and not Player.IsDead then
     local Pos = Player.Position
@@ -426,6 +434,22 @@ function Zilean.OnDraw()
       end
     end
   end
+end
+
+function Zilean.OnInterruptibleSpell(source, spell, danger, endT, canMove)
+  if source.IsEnemy and Menu.Get("Misc.QI") and Zilean.Q:IsReady() and danger > 2 and Player:Distance(source.Position) <= 900 then
+    if Zilean.Q:CastOnHitChance(source,Enums.HitChance.VeryHigh)then return true end
+  end
+  return false
+end
+
+function Zilean.OnGapclose(source,dash)
+  if source.IsEnemy then
+    if Menu.Get("Misc.E") and Zilean.E:IsReady() and Player:Distance(source.Position) <= 550 then
+      if Zilean.E:Cast(source) then return true end
+    end
+  end
+  return false
 end
 
 function Zilean.OnUpdate()
@@ -479,6 +503,10 @@ function Zilean.LoadMenu()
       Menu.Checkbox("1" .. Name, "Use on " .. Name, true)
     end
     end)
+    Menu.ColoredText("Misc", 0xB65A94FF, true)
+    Menu.Checkbox("Misc.QI",   "Use [Q] on Interrupter", true)
+    Menu.Checkbox("Misc.E",   "Use [E] on gapclose", true)
+    Menu.Checkbox("Misc.AutoCC",   "Auto Q on CC", true)
     Menu.Separator()
     Menu.ColoredText("Drawing", 0xB65A94FF, true)
     Menu.Checkbox("Drawing.Q.Enabled",   "Draw [Q] Range",true)
