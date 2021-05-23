@@ -16,6 +16,7 @@ local SpellLib = Libs.Spell
 local TargetSelector = Libs.TargetSelector
 local HPred = Libs.HealthPred
 local TS = Libs.TargetSelector()
+local DashLib = Libs.DashLib
 
 local ObjectManager = CoreEx.ObjectManager
 local EventManager = CoreEx.EventManager
@@ -57,9 +58,20 @@ Poppy.W = SpellLib.Active({
 
 Poppy.E = SpellLib.Targeted({
   Slot = SpellSlots.E,
-  Range = 475,
+  Range = 525,
   Key = "E"
 })
+
+Poppy.R = SpellLib.Skillshot({
+  Slot = SpellSlots.R,
+  Range = 455,
+  Speed = 2000,
+  Radius = 180,
+  Delay = 0.350,
+  MaxRange = 1700,
+  Key = "R"
+})
+
 Poppy.TargetSelector = nil
 Poppy.Logic = {}
 
@@ -84,7 +96,7 @@ end
 function Utils.CanStun(target)
   local targetStun = target.AsHero
   if targetStun ~= nil and targetStun.IsValid then
-    local FinalPosition = targetStun.Position + (Vector(targetStun.Position) - Player.Position):Normalized() * (340 +targetStun.BoundingRadius+Player.BoundingRadius)
+    local FinalPosition = targetStun.Position + (Vector(targetStun.Position) - Player.Position):Normalized() * (300 +targetStun.BoundingRadius+Player.BoundingRadius)
     if (Nav.IsWall(FinalPosition)) then
       return true
     end
@@ -92,14 +104,19 @@ function Utils.CanStun(target)
   return false
 end
 
+function Utils.GetTargetsRange(Range)
+  return {TS:GetTarget(Range,true)}
+end
+
 function Poppy.Logic.Combo()
+  local _Q = Poppy.Q:GetSpellData()
   if Poppy.Q:IsReady() and Menu.Get("Combo.Q") then
     for k,v in pairs(Utils.GetTargets(Poppy.Q)) do
       local predQ = Poppy.Q:GetPrediction(v)
       if predQ ~= nil then
         if Utils.IsValidTarget(v) then
-          if predQ.HitChance >= 0.60 then
-            if  Poppy.Q:Cast(predQ.CastPosition)then return true end
+          if predQ.HitChance >= 0.50 then
+            if Poppy.Q:Cast(predQ.CastPosition)then return true end
           end
         end
       end
@@ -111,8 +128,32 @@ function Poppy.Logic.Combo()
       if Utils.IsValidTarget(v) and Poppy.E:IsInRange(v) then
         if Utils.CanStun(v) then
           if Poppy.E:Cast(v) then return true end
-        elseif Poppy.Q:GetDamage(v) * 2 >= predHp then
+        elseif Poppy.Q:GetDamage(v) * 2.5 >= predHp and (Poppy.Q:IsReady() or _Q.RemainingCooldown < 3.0) then
           if Poppy.E:Cast(v) then return true end
+        elseif Poppy.E:GetDamage(v) * 1.5 >= predHp then
+          if Poppy.E:Cast(v) then return true end
+        end
+      end
+    end
+  end
+  if Poppy.W:IsReady() and Menu.Get("Combo.W") then
+    for k,v in pairs(Utils.GetTargetsRange(900)) do
+      if Utils.IsValidTarget(v) and Player:Distance(v) <= Menu.Get("ActiveRange") then
+        if Poppy.W:Cast() then return true end
+      end
+    end
+  end
+  if Poppy.R:IsReady() and Menu.Get("Combo.R") then
+    for k,v in pairs(Utils.GetTargets(Poppy.R)) do
+      local predHp = HPred.GetHealthPrediction(v,2,true)
+      local predR = Poppy.R:GetPrediction(v)
+      if Utils.IsValidTarget(v) and Poppy.R:IsInRange(v) then
+        if not v.CanMove then
+          Poppy.R:CastOnHitChance(v,Enums.HitChance.Immobile)
+          if  Orbwalker.MoveTo(nil) then return true end
+        elseif Poppy.Q:GetDamage(v) * 2.5 >= predHp and predR ~= nil and predR.HitChance >= 0.60 then
+          Poppy.R:Cast(predR.CastPosition)
+          if Orbwalker.MoveTo(nil) then return true end
         end
       end
     end
@@ -140,7 +181,7 @@ function Poppy.Logic.Harass()
       if Utils.IsValidTarget(v) and Poppy.E:IsInRange(v) then
         if Utils.CanStun(v) then
           if Poppy.E:Cast(v) then return true end
-        elseif Poppy.Q:GetDamage(v) * 2 >= predHp then
+        elseif Poppy.Q:GetDamage(v) * 2.5 >= predHp and Poppy.Q:IsReady() then
           if Poppy.E:Cast(v) then return true end
         end
       end
@@ -150,7 +191,6 @@ function Poppy.Logic.Harass()
 end
 
 function Poppy.Logic.Waveclear()
-  if Menu.Get("ManaSliderLane") >= Player.ManaPercent * 100 then return false end
   local MenuValueQ = Menu.Get("WaveClear.Q")
   local Cannons = {}
   local otherMinions = {}
@@ -163,6 +203,21 @@ function Poppy.Logic.Waveclear()
     elseif Poppy.Q:IsInRange(minion) and minion.IsTargetable and minion.IsLaneMinion then
       table.insert(otherMinions, pos)
     end
+    if Poppy.Q:IsReady() and  MenuValueQ then
+      local cannonsPos, hitCount1 = Poppy.Q:GetBestLinearCastPos(Cannons, Poppy.Q.Radius)
+      local laneMinionsPos, hitCount2 = Poppy.Q:GetBestLinearCastPos(otherMinions, Poppy.Q.Radius)
+
+      if cannonsPos ~= nil and laneMinionsPos ~= nil and Menu.Get("ManaSliderLane") <= Player.ManaPercent * 100 then
+        if hitCount1 >= 1 then
+          if Poppy.Q:Cast(cannonsPos) then return true end
+        end
+      end
+      if laneMinionsPos ~= nil and Menu.Get("ManaSliderLane") <= Player.ManaPercent * 100 then
+        if hitCount2 >= 2 then
+          if Poppy.Q:Cast(laneMinionsPos) then return true end
+        end
+      end
+    end
   end
   for k, v in pairs(ObjectManager.GetNearby("neutral", "minions")) do
     local minion = v.AsMinion
@@ -174,20 +229,7 @@ function Poppy.Logic.Waveclear()
       end
     end
     if Poppy.Q:IsReady() and  MenuValueQ then
-      local cannonsPos, hitCount1 = Poppy.Q:GetBestCircularCastPos(Cannons, Poppy.Q.Radius)
-      local laneMinionsPos, hitCount2 = Poppy.Q:GetBestCircularCastPos(otherMinions, Poppy.Q.Radius)
-      local JungleMinionPos, hitCount3 = Poppy.Q:GetBestCircularCastPos(JungleMinions, Poppy.Q.Radius)
-
-      if cannonsPos ~= nil and laneMinionsPos ~= nil then
-        if hitCount1 >= 1 then
-          if Poppy.Q:Cast(cannonsPos) then return true end
-        end
-      end
-      if laneMinionsPos ~= nil then
-        if hitCount2 >= 2 then
-          if Poppy.Q:Cast(laneMinionsPos) then return true end
-        end
-      end
+      local JungleMinionPos, hitCount3 = Poppy.Q:GetBestLinearCastPos(JungleMinions, Poppy.Q.Radius)
       if JungleMinionPos ~= nil then
         if hitCount3 >= 1 then
           if Poppy.Q:Cast(JungleMinionPos) then return true end
@@ -217,14 +259,25 @@ function Poppy.Logic.Auto()
   return false
 end
 
+
 function Poppy.OnGapclose(source,dash)
-  if source.IsEnemy and Menu.Get("AutoW") and Poppy.W:IsReady() then
+  if source.IsEnemy and source.IsHero and Menu.Get("AutoW") and Poppy.W:IsReady() and not dash.IsBlink then
     local paths = dash:GetPaths()
     local endPos = paths[#paths].EndPos
     local startPos = paths[#paths].StartPos
     if Player:Distance(endPos) <= 400 or (Player:Distance(startPos) <= 400 and Player:Distance(source.Position) <= 400) then
       if Poppy.W:Cast() then return true end
     end
+  end
+  return false
+end
+
+function Poppy.OnInterruptibleSpell(source, spell, danger, endT, canMove)
+  if source.IsEnemy and Menu.Get("AutoEI") and Poppy.E:IsReady() and danger > 2 and Player:Distance(source.Position) <= Poppy.E.Range then
+    if Poppy.E:Cast(source) then return true end
+  elseif source.IsEnemy and Menu.Get("AutoRI") and Poppy.R:IsReady() and danger > 2 and Player:Distance(source.Position) <= Poppy.R.Range then
+    Poppy.R:CastOnHitChance(source,Enums.HitChance.VeryHigh)
+    if Orbwalker.MoveTo(nil) then return true end
   end
   return false
 end
@@ -247,10 +300,10 @@ end
 function Poppy.OnDraw()
   if Player.IsVisible and Player.IsOnScreen and not Player.IsDead then
     local Pos = Player.Position
-    local spells = {Poppy.Q,Poppy.E}
+    local spells = {Poppy.Q,Poppy.E,Poppy.R}
     for k, v in pairs(spells) do
       if Menu.Get("Drawing."..v.Key..".Enabled", true) and v:IsReady() then
-        Renderer.DrawCircle3D(Pos, v.Range, 30, 3, Menu.Get("Drawing."..v.Key..".Color"))
+        Renderer.DrawCircle3D(Pos, (v.Key == "R" and v.MaxRange) or v.Range, 30, 3, Menu.Get("Drawing."..v.Key..".Color"))
       end
     end
   end
@@ -262,8 +315,13 @@ function Poppy.LoadMenu()
     Menu.ColoredText("Combo", 0xB65A94FF, true)
     Menu.ColoredText("> Q", 0x0066CCFF, false)
     Menu.Checkbox("Combo.Q", "Use Q", true)
+    Menu.ColoredText("> W", 0x0066CCFF, false)
+    Menu.Checkbox("Combo.W", "Use W", false)
+    Menu.Slider("ActiveRange","W Active Range",800,100,900)
     Menu.ColoredText("> E", 0x0066CCFF, false)
     Menu.Checkbox("Combo.E", "Use E", true)
+    Menu.ColoredText("> R", 0x0066CCFF, false)
+    Menu.Checkbox("Combo.R", "Use R", false)
     Menu.ColoredText("Harass", 0x118AB2FF, true)
     Menu.ColoredText("Mana Percent limit", 0xFFD700FF, true)
     Menu.Slider("ManaSlider","",50,0,100)
@@ -280,14 +338,18 @@ function Poppy.LoadMenu()
     Menu.Checkbox("WaveClear.E", "Use E", false)
     Menu.NextColumn()
     Menu.ColoredText("Auto", 0xB65A94FF, true)
-    Menu.Checkbox("AutoW", "Auto W", true)
-    Menu.Checkbox("AutoE", "Auto E", false)
+    Menu.Checkbox("AutoW", "Auto W AntiGapclose", true)
+    Menu.Checkbox("AutoE", "Auto E Wall", false)
+    Menu.Checkbox("AutoEI", "Auto E Interupt", true)
+    Menu.Checkbox("AutoRI", "Auto R Interupt", true)
     Menu.Separator()
     Menu.ColoredText("Drawing", 0xB65A94FF, true)
     Menu.Checkbox("Drawing.Q.Enabled",   "Draw [Q] Range",true)
     Menu.ColorPicker("Drawing.Q.Color", "Draw [Q] Color", 0x118AB2FF)
     Menu.Checkbox("Drawing.E.Enabled",   "Draw [E] Range",false)
     Menu.ColorPicker("Drawing.E.Color", "Draw [E] Color", 0x118AB2FF)
+    Menu.Checkbox("Drawing.R.Enabled",   "Draw [R] Range",false)
+    Menu.ColorPicker("Drawing.R.Color", "Draw [R] Color", 0x118AB2FF)
     end)
   end
   if loaded == false then
