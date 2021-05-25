@@ -163,14 +163,14 @@ function Udyr.Logic.Combo()
       if Udyr.E:Cast() then return true end
     end
     if Player:Distance(enemy) <= 250 then
-      if MenuValueQ and Udyr.Q:IsReady() and (Utils.HasStun(enemy) or Udyr.R:GetLevel() == 0) and not Utils.HasBear() and not Utils.HasPhoenixAoe() then
+      if MenuValueQ and Udyr.Q:IsReady() and (Utils.HasStun(enemy) or Udyr.R:GetLevel() == 0) and not Utils.HasPhoenixAoe() then
         if Udyr.Q:Cast() then return true end
       end
-      if MenuValueR and not Utils.HasPhoenixAoe() and Udyr.R:IsReady() and (Utils.HasStun(enemy) or Udyr.Q:GetLevel() == 0) and not Utils.HasBear()  then
+      if MenuValueR and not Utils.HasPhoenixAoe() and Udyr.R:IsReady() and (Utils.HasStun(enemy) or Udyr.Q:GetLevel() == 0)  then
         if Udyr.R:Cast() then return true end
       end
     end
-    if MenuValueW and Udyr.W:IsReady() and (incomingDamage/Player.MaxHealth) * 100 >= 15 and not Utils.HasBear() then
+    if MenuValueW and Udyr.W:IsReady() and (incomingDamage/Player.MaxHealth) * 100 >= 10 and not Utils.HasBear() then
       if Udyr.W:Cast() then return true end
     end
   end
@@ -198,7 +198,7 @@ function Udyr.Logic.Harass()
         if Udyr.R:Cast() then return true end
       end
     end
-    if MenuValueW and Udyr.W:IsReady() and (incomingDamage/Player.MaxHealth) * 100 >= 15 and not Utils.HasBear() then
+    if MenuValueW and Udyr.W:IsReady() and (incomingDamage/Player.MaxHealth) * 100 >= 10 and not Utils.HasBear() then
       if Udyr.W:Cast() then return true end
     end
   end
@@ -230,7 +230,7 @@ function Udyr.Logic.Waveclear()
   for k, v in pairs(ObjectManager.GetNearby("neutral", "minions")) do
     local minion = v.AsMinion
     if Player:Distance(minion) <= 250 and minion.IsTargetable and not minion.IsJunglePlant then
-      if MenuValueQ and Udyr.Q:IsReady()  and not Utils.HasPhoenixAoe() and not Utils.HasBear() then
+      if MenuValueQ and Udyr.Q:IsReady()  and not Utils.HasPhoenixAoe()then
         if Udyr.Q:Cast() then return true end
       end
       if MenuValueR and Udyr.R:IsReady() and (not Utils.HasPhoenixAoe() or Udyr.Q:GetLevel() == 0) and not Utils.HasBear() then
