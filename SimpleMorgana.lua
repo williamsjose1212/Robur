@@ -35,8 +35,6 @@ local HitChanceEnum = Enums.HitChance
 local Nav = CoreEx.Nav
 
 local Morgana = {}
-
-local loaded = false
 local qMana = 0
 local wMana = 0
 local eMana = 0
@@ -301,17 +299,17 @@ function Morgana.OnProcessSpell(sender,spell)
         local pred = hero:FastPrediction(Game.GetLatency()+ spell.CastDelay)
         if spell.LineWidth > 0 then
           local powCalc = (spell.LineWidth + hero.BoundingRadius)^2
-          if (Vector(pred):LineDistance(Vector(spell.StartPos),Vector(spell.EndPos),true) <= powCalc) or (Vector(hero.Position):LineDistance(Vector(spell.StartPos),Vector(spell.EndPos),true) <= powCalc) and Morgana.E:IsReady() and Utils.hasValue(spellslist,spell.Name) then
+          if (Vector(pred):LineDistance(Vector(spell.StartPos),Vector(spell.EndPos),true) <= powCalc) or (Vector(hero.Position):LineDistance(Vector(spell.StartPos),Vector(spell.EndPos),true) <= powCalc) and Morgana.E:IsReady() then
             if Menu.Get(spell.Name  ) then
               if Morgana.E:Cast(hero) then return true end
             end
           end
-        elseif hero:Distance(spell.EndPos) < 50 + hero.BoundingRadius or pred:Distance(spell.EndPos) < 50 + hero.BoundingRadius and Morgana.E:IsReady() and Utils.hasValue(spellslist,spell.Name) then
+        elseif hero:Distance(spell.EndPos) < 50 + hero.BoundingRadius or pred:Distance(spell.EndPos) < 50 + hero.BoundingRadius and Morgana.E:IsReady() then
           if Menu.Get(spell.Name) then
             if Morgana.E:Cast(hero) then return true end
           end
         end
-        if spell.Target and spell.Target.IsHero and spell.Target.IsAlly and Morgana.E:IsInRange(spell.Target.AsHero) and Menu.Get("1" .. spell.Target.AsHero.CharName) and Morgana.E:IsReady() and Utils.hasValue(spellslist,spell.Name) then
+        if spell.Target and spell.Target.IsHero and spell.Target.IsAlly and Morgana.E:IsInRange(spell.Target.AsHero) and Menu.Get("1" .. spell.Target.AsHero.CharName) and Morgana.E:IsReady() then
           if Menu.Get(spell.Name) then
             if Morgana.E:Cast(spell.Target.AsHero) then return true end
           end
@@ -453,10 +451,8 @@ function Morgana.LoadMenu()
     Menu.ColorPicker("Drawing.R.Color", "Draw [R] Color", 0x118AB2FF)
     end)
   end
-  if loaded == false then
-    Menu.RegisterMenu("Simple Morgana", "Simple Morgana", MorganaMenu)
-    loaded = true
-  end
+  if Menu.RegisterMenu("Simple Morgana", "Simple Morgana", MorganaMenu) then return true end
+  return false
 end
 
 function OnLoad()
