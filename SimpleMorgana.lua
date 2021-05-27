@@ -343,7 +343,7 @@ function Morgana.OnGapclose(source,dash)
   if source.IsEnemy and source.IsHero  and not dash.IsBlink then
     local paths = dash:GetPaths()
     local endPos = paths[#paths].EndPos
-    local predQ = Prediction.GetPredictedPosition(source, Morgana.Q, Player.Position)
+    local predQ = Prediction.GetPredictedPosition(source.AsHero, Morgana.Q, Player.Position)
     if Player:Distance(endPos) <= 600 and Menu.Get("AutoQg") and Morgana.Q:IsReady() and predQ.HitChanceEnum >= HitChanceEnum.VeryHigh then
       if Morgana.Q:Cast(predQ.CastPosition) then return true end
     end
