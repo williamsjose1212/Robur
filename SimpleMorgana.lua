@@ -301,17 +301,17 @@ function Morgana.OnProcessSpell(sender,spell)
         local pred = hero:FastPrediction(Game.GetLatency()+ spell.CastDelay)
         if spell.LineWidth > 0 then
           local powCalc = (spell.LineWidth + hero.BoundingRadius)^2
-          if (Vector(pred):LineDistance(Vector(spell.StartPos),Vector(spell.EndPos),true) <= powCalc) or (Vector(hero.Position):LineDistance(Vector(spell.StartPos),Vector(spell.EndPos),true) <= powCalc) and Morgana.E:IsReady() then
-            if Menu.Get(spell.Name) then
+          if (Vector(pred):LineDistance(Vector(spell.StartPos),Vector(spell.EndPos),true) <= powCalc) or (Vector(hero.Position):LineDistance(Vector(spell.StartPos),Vector(spell.EndPos),true) <= powCalc) and Morgana.E:IsReady() and Utils.hasValue(spellslist,spell.Name) then
+            if Menu.Get(spell.Name  ) then
               if Morgana.E:Cast(hero) then return true end
             end
           end
-        elseif hero:Distance(spell.EndPos) < 50 + hero.BoundingRadius or pred:Distance(spell.EndPos) < 50 + hero.BoundingRadius and Morgana.E:IsReady() then
+        elseif hero:Distance(spell.EndPos) < 50 + hero.BoundingRadius or pred:Distance(spell.EndPos) < 50 + hero.BoundingRadius and Morgana.E:IsReady() and Utils.hasValue(spellslist,spell.Name) then
           if Menu.Get(spell.Name) then
             if Morgana.E:Cast(hero) then return true end
           end
         end
-        if spell.Target and spell.Target.IsHero and spell.Target.IsAlly and Morgana.E:IsInRange(spell.Target.AsHero) and Menu.Get("1" .. spell.Target.AsHero.CharName) and Morgana.E:IsReady() then
+        if spell.Target and spell.Target.IsHero and spell.Target.IsAlly and Morgana.E:IsInRange(spell.Target.AsHero) and Menu.Get("1" .. spell.Target.AsHero.CharName) and Morgana.E:IsReady() and Utils.hasValue(spellslist,spell.Name) then
           if Menu.Get(spell.Name) then
             if Morgana.E:Cast(spell.Target.AsHero) then return true end
           end
