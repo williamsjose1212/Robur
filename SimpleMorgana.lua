@@ -165,7 +165,7 @@ function Morgana.Logic.Combo()
   for k, enemy in pairs(Utils.GetTargets(Morgana.Q)) do
     if Morgana.Q:IsReady() and MenuValueQ then
       local predQ = Prediction.GetPredictedPosition(enemy, Morgana.Q, Player.Position)
-      if predQ ~= nil and predQ.HitChanceEnum >= HitChanceEnum.High and Morgana.Q:IsInRange(enemy) then
+      if predQ ~= nil and predQ.HitChanceEnum >= HitChanceEnum.Medium and Morgana.Q:IsInRange(enemy) then
         if Morgana.Q:Cast(predQ.CastPosition) then return true end
       end
     end
@@ -300,7 +300,7 @@ function Morgana.OnProcessSpell(sender,spell)
         if spell.LineWidth > 0 then
           local powCalc = (spell.LineWidth + hero.BoundingRadius)^2
           if (Vector(pred):LineDistance(Vector(spell.StartPos),Vector(spell.EndPos),true) <= powCalc) or (Vector(hero.Position):LineDistance(Vector(spell.StartPos),Vector(spell.EndPos),true) <= powCalc) and Morgana.E:IsReady() then
-            if Menu.Get(spell.Name  ) then
+            if Utils.hasValue(spellslist,spell.Name) and Menu.Get(spell.Name) then
               if Morgana.E:Cast(hero) then return true end
             end
           end
