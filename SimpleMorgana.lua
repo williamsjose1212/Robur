@@ -49,6 +49,7 @@ Morgana.Q = SpellLib.Skillshot({
   Radius = 140,
   Collisions = { Heroes = true, Minions = true, WindWall = true },
   Type = "Linear",
+  UseHitbox = true,
   Key = "Q"
 })
 
@@ -158,6 +159,14 @@ function Utils.hasValue(tab,val)
   return false
 end
 
+function Utils.tablefind(tab,el)
+  for index, value in pairs(tab) do
+    if value == el then
+      return index
+    end
+  end
+end
+
 function Morgana.Logic.Combo()
   local MenuValueQ = Menu.Get("Combo.Q")
   local MenuValueW = Menu.Get("Combo.W")
@@ -165,7 +174,7 @@ function Morgana.Logic.Combo()
   for k, enemy in pairs(Utils.GetTargets(Morgana.Q)) do
     if Morgana.Q:IsReady() and MenuValueQ then
       local predQ = Prediction.GetPredictedPosition(enemy, Morgana.Q, Player.Position)
-      if predQ ~= nil and predQ.HitChanceEnum >= HitChanceEnum.Medium and Morgana.Q:IsInRange(enemy) then
+      if predQ ~= nil and predQ.HitChanceEnum >= HitChanceEnum.High and Morgana.Q:IsInRange(enemy) then
         if Morgana.Q:Cast(predQ.CastPosition) then return true end
       end
     end
@@ -292,25 +301,25 @@ end
 
 function Morgana.OnProcessSpell(sender,spell)
   if spell.IsBasicAttack then return false end
-  if sender.IsHero and sender.IsEnemy and Menu.Get("AutoE") and Utils.hasValue(spellslist,spell.Name) then
+  if sender.IsHero and sender.IsEnemy and Menu.Get("AutoE") then
     for _, v in pairs(ObjectManager.GetNearby("ally","heroes")) do
       local hero = v.AsHero
-      if Menu.Get("1" .. hero.CharName) and  Morgana.E:IsInRange(hero) then
+      if Menu.Get("1" .. hero.CharName) and  Morgana.E:IsInRange(hero) and Player:Distance(spell.EndPos) <= Morgana.E.Range then
         local pred = hero:FastPrediction(Game.GetLatency()+ spell.CastDelay)
         if spell.LineWidth > 0 then
           local powCalc = (spell.LineWidth + hero.BoundingRadius)^2
           if (Vector(pred):LineDistance(Vector(spell.StartPos),Vector(spell.EndPos),true) <= powCalc) or (Vector(hero.Position):LineDistance(Vector(spell.StartPos),Vector(spell.EndPos),true) <= powCalc) and Morgana.E:IsReady() then
-            if Utils.hasValue(spellslist,spell.Name) and Menu.Get(spell.Name) then
+            if Utils.hasValue(spellslist,spell.Name) then
               if Morgana.E:Cast(hero) then return true end
             end
           end
         elseif hero:Distance(spell.EndPos) < 50 + hero.BoundingRadius or pred:Distance(spell.EndPos) < 50 + hero.BoundingRadius and Morgana.E:IsReady() then
-          if Utils.hasValue(spellslist,spell.Name) and Menu.Get(spell.Name) then
+          if Utils.hasValue(spellslist,spell.Name) then
             if Morgana.E:Cast(hero) then return true end
           end
         end
         if spell.Target and spell.Target.IsHero and spell.Target.IsAlly and Morgana.E:IsInRange(spell.Target.AsHero) and Menu.Get("1" .. spell.Target.AsHero.CharName) and Morgana.E:IsReady() then
-          if Utils.hasValue(spellslist,spell.Name) and Menu.Get(spell.Name) then
+          if Utils.hasValue(spellslist,spell.Name) then
             if Morgana.E:Cast(spell.Target.AsHero) then return true end
           end
         end
@@ -423,20 +432,36 @@ function Morgana.LoadMenu()
     for _, Object in pairs(ObjectManager.Get("enemy", "heroes")) do
       local hero = Object.AsHero
       local Name = Object.AsHero.CharName
+      Menu.NewTree(Name,Name, function()
+      Menu.Checkbox("Q" .. Name, "Use for " .. Name .. "Q", true)
+      Menu.Checkbox("W" .. Name, "Use for " .. Name .. "W", true)
+      Menu.Checkbox("E" .. Name, "Use for " .. Name .. "E", true)
+      Menu.Checkbox("R" .. Name, "Use for " .. Name .. "R", true)
+      end)
       local spellQName = hero:GetSpell(SpellSlots.Q).Name
       local spellWName = hero:GetSpell(SpellSlots.W).Name
       local spellEName = hero:GetSpell(SpellSlots.E).Name
       local spellRName = hero:GetSpell(SpellSlots.R).Name
-      table.insert(spellslist,spellQName)
-      table.insert(spellslist,spellWName)
-      table.insert(spellslist,spellEName)
-      table.insert(spellslist,spellRName)
-      Menu.NewTree(Name,Name, function()
-      Menu.Checkbox(spellQName, "Use for " .. spellQName, true)
-      Menu.Checkbox(spellWName, "Use for " .. spellWName, true)
-      Menu.Checkbox(spellEName, "Use for " .. spellEName, true)
-      Menu.Checkbox(spellRName, "Use for " .. spellRName, true)
-      end)
+      if Menu.Get("Q"..Name) then
+        table.insert(spellslist,spellQName)
+      elseif not Menu.Get("Q"..Name) and Utils.hasValue(spellslist,spellQName) then
+        table.remove(spellslist,Utils.tablefind(spellslist,spellQName))
+      end
+      if Menu.Get("W"..Name) then
+        table.insert(spellslist,spellWName)
+      elseif not Menu.Get("W"..Name) and Utils.hasValue(spellslist,spellWName) then
+        table.remove(spellslist,Utils.tablefind(spellslist,spellWName))
+      end
+      if Menu.Get("E"..Name) then
+        table.insert(spellslist,spellEName)
+      elseif not Menu.Get("E"..Name) and Utils.hasValue(spellslist,spellEName) then
+        table.remove(spellslist,Utils.tablefind(spellslist,spellEName))
+      end
+      if Menu.Get("R"..Name) then
+        table.insert(spellslist,spellRName)
+      elseif not Menu.Get("R"..Name) and Utils.hasValue(spellslist,spellRName) then
+        table.remove(spellslist,Utils.tablefind(spellslist,spellRName))
+      end
     end
     end)
     Menu.Separator()
