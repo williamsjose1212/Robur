@@ -317,10 +317,10 @@ function Morgana.OnProcessSpell(sender,spell)
             if Morgana.E:Cast(hero) then return true end
           end
         end
-        if spell.Target and spell.Target.IsHero and spell.Target.IsAlly and Morgana.E:IsInRange(spell.Target.AsHero) and Menu.Get("1" .. spell.Target.AsHero.CharName) and Morgana.E:IsReady() then
-          if Utils.hasValue(spellslist,spell.Name) then
-            if Morgana.E:Cast(spell.Target.AsHero) then return true end
-          end
+      end
+      if spell.Target and spell.Target.IsHero and spell.Target.IsAlly and Morgana.E:IsInRange(spell.Target.AsHero) and Menu.Get("1" .. spell.Target.AsHero.CharName) and Morgana.E:IsReady() then
+        if Utils.hasValue(spellslist,spell.Name) then
+          if Morgana.E:Cast(spell.Target.AsHero) then return true end
         end
       end
     end
