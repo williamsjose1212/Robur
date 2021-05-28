@@ -300,7 +300,6 @@ function Morgana.Logic.Auto()
 end
 
 function Morgana.OnProcessSpell(sender,spell)
-  if spell.IsBasicAttack then return false end
   if sender.IsHero and sender.IsEnemy and Menu.Get("AutoE") then
     for _, v in pairs(ObjectManager.GetNearby("ally","heroes")) do
       local hero = v.AsHero
