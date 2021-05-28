@@ -43,7 +43,7 @@ local spellslist = {}
 
 Morgana.Q = SpellLib.Skillshot({
   Slot = SpellSlots.Q,
-  Range = 1200,
+  Range = 1300,
   Delay = 0.250,
   Speed = 1200,
   Radius = 140,
@@ -165,7 +165,7 @@ function Morgana.Logic.Combo()
   for k, enemy in pairs(Utils.GetTargets(Morgana.Q)) do
     if Morgana.Q:IsReady() and MenuValueQ then
       local predQ = Prediction.GetPredictedPosition(enemy, Morgana.Q, Player.Position)
-      if predQ ~= nil and predQ.HitChanceEnum >= HitChanceEnum.VeryHigh and Morgana.Q:IsInRange(enemy) then
+      if predQ ~= nil and predQ.HitChanceEnum >= HitChanceEnum.High and Morgana.Q:IsInRange(enemy) then
         if Morgana.Q:Cast(predQ.CastPosition) then return true end
       end
     end
@@ -305,12 +305,12 @@ function Morgana.OnProcessSpell(sender,spell)
             end
           end
         elseif hero:Distance(spell.EndPos) < 50 + hero.BoundingRadius or pred:Distance(spell.EndPos) < 50 + hero.BoundingRadius and Morgana.E:IsReady() then
-          if Menu.Get(spell.Name) then
+          if Utils.hasValue(spellslist,spell.Name) and Menu.Get(spell.Name) then
             if Morgana.E:Cast(hero) then return true end
           end
         end
         if spell.Target and spell.Target.IsHero and spell.Target.IsAlly and Morgana.E:IsInRange(spell.Target.AsHero) and Menu.Get("1" .. spell.Target.AsHero.CharName) and Morgana.E:IsReady() then
-          if Menu.Get(spell.Name) then
+          if Utils.hasValue(spellslist,spell.Name) and Menu.Get(spell.Name) then
             if Morgana.E:Cast(spell.Target.AsHero) then return true end
           end
         end
