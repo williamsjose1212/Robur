@@ -336,13 +336,13 @@ function Ezreal.Logic.Waveclear()
           if Ezreal.Q:Cast(qPred.CastPosition) then return true end
         end
       end
-      if qPred ~= nil and qPred.HitChanceEnum >= HitChanceEnum.Low and not Orbwalker.CanAttack() and Menu.Get("ManaSliderLane") <= Player.ManaPercent * 100 and Menu.Get("WaveClear.Qpush") then
+      if qPred ~= nil and qPred.HitChanceEnum >= HitChanceEnum.Low and not Orbwalker.CanAttack() and Menu.Get("ManaSliderLane") <= Player.ManaPercent * 100 then
         local delay = (Player:Distance(minion.Position)/ Ezreal.Q.Speed + Ezreal.Q.Delay)*1000
         local hpPred = HPred.GetHealthPrediction(minion,delay,false)
         if hpPred > 20 then
           if hpPred < Ezreal.Q:GetDamage(minion)*0.60 then
             if Ezreal.Q:Cast(qPred.CastPosition) then return true end
-          elseif (minion.Health/minion.MaxHealth)*100 > 80 and hpPred > Ezreal.Q:GetDamage(minion) then
+          elseif (minion.Health/minion.MaxHealth)*100 > 80 and hpPred > Ezreal.Q:GetDamage(minion) and Menu.Get("WaveClear.Qpush") then
             if Ezreal.Q:Cast(qPred.CastPosition) then return true end
           end
         end
