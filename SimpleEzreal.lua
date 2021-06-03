@@ -336,7 +336,7 @@ function Ezreal.Logic.Waveclear()
           if Ezreal.Q:Cast(qPred.CastPosition) then return true end
         end
       end
-      if qPred ~= nil and qPred.HitChanceEnum >= HitChanceEnum.Low and not Orbwalker.CanAttack() and Player:Distance(minion.Position) <= Orbwalker.GetTrueAutoAttackRange() and Menu.Get("ManaSliderLane") <= Player.ManaPercent * 100 then
+      if qPred ~= nil and qPred.HitChanceEnum >= HitChanceEnum.Low and not Orbwalker.CanAttack() and Menu.Get("ManaSliderLane") <= Player.ManaPercent * 100 and Menu.Get("WaveClear.Qpush") then
         local delay = (Player:Distance(minion.Position)/ Ezreal.Q.Speed + Ezreal.Q.Delay)*1000
         local hpPred = HPred.GetHealthPrediction(minion,delay,false)
         if hpPred > 20 then
@@ -468,7 +468,7 @@ function Ezreal.LoadMenu()
     Menu.ColoredText("> W", 0x0066CCFF, false)
     Menu.Checkbox("Combo.W", "Use W", true)
     Menu.ColoredText("> E", 0x0066CCFF, false)
-    Menu.Checkbox("Combo.E", "Use E KS", false)
+    Menu.Checkbox("Combo.E", "Use E KS", true)
     Menu.Keybind("CastR", "Semi [R] Cast", string.byte('T'))
     Menu.ColoredText("Harass", 0x118AB2FF, true)
     Menu.ColoredText("Mana Percent limit", 0xFFD700FF, true)
@@ -482,12 +482,13 @@ function Ezreal.LoadMenu()
     Menu.Slider("ManaSliderLane","",35,0,100)
     Menu.ColoredText("> Q", 0x0066CCFF, false)
     Menu.Checkbox("WaveClear.Q", "Use Q", true)
+    Menu.Checkbox("WaveClear.Qpush", "Use Q to push", true)
     Menu.ColoredText("Misc", 0xB65A94FF, true)
     Menu.ColoredText("> Q", 0x0066CCFF, false)
     Menu.Checkbox("KSq", "Auto KS Q", true)
     Menu.ColoredText("> R", 0x0066CCFF, false)
     Menu.Checkbox("AutoR", "Auto R KS", true)
-    Menu.Checkbox("AutoRcc", "Auto R cc", false)
+    Menu.Checkbox("AutoRcc", "Auto R cc", true)
     Menu.Checkbox("AutoRhit", "Auto R HitCount", true)
     Menu.Slider("HitcountR", "HitCount", 3, 1, 5)
     Menu.Separator()
