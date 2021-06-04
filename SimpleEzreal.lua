@@ -128,11 +128,11 @@ function Utils.SetMana()
 end
 
 function Utils.GetTargets(Spell)
-  return {TS:GetTarget(Spell.Range,true)}
+  return {TS:GetTargets(Spell.Range,true)}
 end
 
 function Utils.GetTargetsRange(Range)
-  return {TS:GetTarget(Range,false)}
+  return {TS:GetTargets(Range,false)}
 end
 
 function Utils.ValidUlt(target)
