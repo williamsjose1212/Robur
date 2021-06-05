@@ -59,6 +59,7 @@ Ezreal.W = SpellLib.Skillshot({
   Speed = 1700,
   Radius = 60,
   Collisions = {Heroes = true, WindWall = true },
+  Type = "Linear",
   UseHitbox = true,
   Key = "W"
 })
@@ -251,11 +252,10 @@ function Ezreal.Logic.Combo()
       end
     end
   end
-  if MenuValueE and Ezreal.E:IsReady() and not IsInTurret and (Player.Health/Player.MaxHealth)*100 > 40 and Game.GetTime() - overkill > 0.3  then
+  if MenuValueE and Ezreal.E:IsReady() and not IsInTurret and (Player.Health/Player.MaxHealth)*100 > 40 and Game.GetTime() - overkill > 0.3 then
     for k, enemy in pairs(ObjectManager.GetNearby("enemy", "heroes")) do
       if Utils.IsValidTarget(enemy) and enemy:Distance(Renderer.GetMousePos()) + 300 < Player:Distance(enemy.Position) and Player:Distance(enemy.Position) > Orbwalker.GetTrueAutoAttackRange() and Player:Distance(enemy.Position) <= 1300 then
-        local dashPos = Vector(Player.Position,Renderer.GetMousePos(),Ezreal.E.Range)
-        local ePred = Ezreal.E:GetPrediction(enemy)
+        local dashPos = Vector(Player.Position):Extended(Renderer.GetMousePos(),Ezreal.E.Range)
         if Utils.CountEnemiesInRange(dashPos, 900) < 3 then
           local dmg = 0
           if Player:Distance(enemy.Position) <= 950 then
@@ -270,8 +270,8 @@ function Ezreal.Logic.Combo()
           if Ezreal.W:IsReady() and Player.Mana > qMana + eMana + wMana then
             dmg = dmg + Ezreal.W:GetDamage(enemy)
           end
-          if dmg > enemy.Health and Utils.ValidUlt(enemy) and ePred ~= nil then
-            if Ezreal.E:Cast(ePred.CastPosition) then return true end
+          if dmg > enemy.Health and Utils.ValidUlt(enemy) then
+            if Ezreal.E:Cast(dashPos) then return true end
           end
         end
       end
