@@ -120,7 +120,7 @@ function Utils.SetMana()
 end
 
 function Utils.GetTargets(Spell)
-  return {TS:GetTarget(Spell.Range,true)}
+  return TS:GetTargets(Spell.Range,true)
 end
 
 function Utils.GetTargetsRange(Range)
@@ -173,13 +173,13 @@ function Morgana.Logic.Combo()
   local MenuValueR = Menu.Get("Combo.R")
   for k, enemy in pairs(Utils.GetTargets(Morgana.Q)) do
     if Morgana.Q:IsReady() and MenuValueQ then
-      local predQ = Prediction.GetPredictedPosition(enemy, Morgana.Q, Player.Position)
+      local predQ = Morgana.Q:GetPrediction(enemy)
       if predQ ~= nil and predQ.HitChanceEnum >= HitChanceEnum.High and Morgana.Q:IsInRange(enemy) then
         if Morgana.Q:Cast(predQ.CastPosition) then return true end
       end
     end
     if Morgana.W:IsReady() and MenuValueW and not enemy.IsZombie then
-      local predW = Prediction.GetPredictedPosition(enemy, Morgana.W, Player.Position)
+      local predW = Morgana.W:GetPrediction(enemy)
       if predW ~= nil and Morgana.W:GetDamage(enemy) >= enemy.Health and Morgana.W:IsInRange(enemy) and predW.HitChanceEnum >= HitChanceEnum.VeryHigh then
         if Morgana.W:Cast(predW.CastPosition) then return true end
       elseif predW ~= nil and not Morgana.Q:IsReady() and Player.Mana > qMana+wMana+eMana+rMana and Morgana.W:IsInRange(enemy) and predW.HitChanceEnum >= HitChanceEnum.VeryHigh then
@@ -207,13 +207,13 @@ function Morgana.Logic.Harass()
   local MenuValueW = Menu.Get("Harass.W")
   for k, enemy in pairs(Utils.GetTargets(Morgana.Q)) do
     if Morgana.Q:IsReady() and MenuValueQ then
-      local predQ = Prediction.GetPredictedPosition(enemy, Morgana.Q, Player.Position)
+      local predQ = Morgana.Q:GetPrediction(enemy)
       if predQ ~= nil and predQ.HitChanceEnum >= HitChanceEnum.VeryHigh and Morgana.Q:IsInRange(enemy) then
         if Morgana.Q:Cast(predQ.CastPosition) then return true end
       end
     end
     if Morgana.W:IsReady() and MenuValueW and not enemy.IsZombie then
-      local predW = Prediction.GetPredictedPosition(enemy, Morgana.W, Player.Position)
+      local predW = Morgana.W:GetPrediction(enemy)
       if predW ~= nil and Morgana.W:GetDamage(enemy) >= enemy.Health and Morgana.W:IsInRange(enemy) and predW.HitChanceEnum >= HitChanceEnum.VeryHigh then
         if Morgana.W:Cast(predW.CastPosition) then return true end
       elseif predW ~= nil and Morgana.W:IsInRange(predW.CastPosition) and predW.HitChanceEnum >= HitChanceEnum.VeryHigh then
