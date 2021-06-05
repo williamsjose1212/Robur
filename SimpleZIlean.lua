@@ -29,14 +29,14 @@ local SpellSlots = Enums.SpellSlots
 local SpellStates = Enums.SpellStates
 local BuffTypes = Enums.BuffTypes
 local Events = Enums.Events
-local HitChance = Enums.HitChance
+local HitChanceEnum = Enums.HitChance
 local Nav = CoreEx.Nav
 local Zilean = {}
 local loaded = false
 
 Zilean.Q = SpellLib.Skillshot({
   Slot = Enums.SpellSlots.Q,
-  Range = 910,
+  Range = 920,
   Speed = 2000,
   Radius = 100,
   Type = "Circular",
@@ -77,7 +77,7 @@ function Utils.IsGameAvailable()
 end
 
 function Utils.GetTargets(Spell)
-  return {TS:GetTarget(Spell.Range,true)}
+  return TS:GetTargets(Spell.Range,true)
 end
 
 function Utils.IsValidTarget(Target)
@@ -139,7 +139,7 @@ function Zilean.Logic.Combo()
             if Zilean.E:IsInRange(v) and Zilean.E:IsReady() and (Zilean.Q:GetManaCost() + Zilean.E:GetManaCost()) <= Player.Mana and MenuValueE then
               if Zilean.E:Cast(v) then return true end
             end
-            if MenuValueQ and predQ.HitChance >= 0.50 then
+            if MenuValueQ and predQ.HitChanceEnum >= HitChanceEnum.High then
               if Zilean.Q:Cast(predQ.CastPosition) then return true end
             end
           elseif  Zilean.Q:IsReady() and not Zilean.W:IsReady() and Utils.HasQZileanBuff(Enemy) and Zilean.Q:IsInRange(Enemy) then
@@ -148,7 +148,7 @@ function Zilean.Logic.Combo()
             end
             local predQ2 = Zilean.Q:GetPrediction(Enemy)
             if MenuValueQ and predQ2 ~= nil then
-              if predQ2.HitChance >= 0.50 then
+              if predQ2.HitChanceEnum >= HitChanceEnum.High  then
                 if Zilean.Q:Cast(predQ2.CastPosition) then return true end
               end
             end
@@ -156,14 +156,14 @@ function Zilean.Logic.Combo()
             if Zilean.W:Cast() then return true end
           end
         end
-        if Zilean.Q:IsReady() and Zilean.W:GetLevel() == 0 and predQ.HitChance >= 0.50 then
+        if Zilean.Q:IsReady() and Zilean.W:GetLevel() == 0 and predQ.HitChanceEnum >= HitChanceEnum.High then
           if Zilean.E:IsInRange(v) and Zilean.E:IsReady() and (Zilean.Q:GetManaCost() + Zilean.E:GetManaCost()) <= Player.Mana and MenuValueE then
             if Zilean.E:Cast(v) then return true end
           end
           if MenuValueQ then
             if Zilean.Q:Cast(predQ.CastPosition) then return true end
           end
-        elseif predQ.HitChance >= 0.50 and predHp <= (Zilean.Q:GetDamage(Enemy) * 3) and Zilean.Q:IsInRange(Enemy) then
+        elseif predQ.HitChanceEnum >= HitChanceEnum.High and predHp <= (Zilean.Q:GetDamage(Enemy) * 3) and Zilean.Q:IsInRange(Enemy) then
           if Zilean.E:IsInRange(Enemy) and Zilean.E:IsReady() and (Zilean.Q:GetManaCost() + Zilean.E:GetManaCost()) <= Player.Mana and MenuValueE then
             if Zilean.E:Cast(Enemy) then return true end
           end
@@ -227,7 +227,7 @@ function Zilean.Logic.Harass()
             if Zilean.E:IsInRange(v) and Zilean.E:IsReady() and (Zilean.Q:GetManaCost() + Zilean.E:GetManaCost()) <= Player.Mana and MenuValueE then
               if Zilean.E:Cast(v) then return true end
             end
-            if MenuValueQ and predQ.HitChance >= 0.85 then
+            if MenuValueQ and predQ.HitChanceEnum >= HitChanceEnum.VeryHigh  then
               if Zilean.Q:Cast(predQ.CastPosition) then return true end
             end
           elseif  Zilean.Q:IsReady() and not Zilean.W:IsReady() and Utils.HasQZileanBuff(Enemy) and Zilean.Q:IsInRange(Enemy) then
@@ -236,7 +236,7 @@ function Zilean.Logic.Harass()
             end
             local predQ2 = Zilean.Q:GetPrediction(Enemy)
             if MenuValueQ and predQ2 ~= nil then
-              if predQ2.HitChance >= 0.85 then
+              if predQ2.HitChanceEnum >= HitChanceEnum.VeryHigh  then
                 if Zilean.Q:Cast(predQ2.CastPosition) then return true end
               end
             end
@@ -244,14 +244,14 @@ function Zilean.Logic.Harass()
             if Zilean.W:Cast() then return true end
           end
         end
-        if Zilean.Q:IsReady() and Zilean.W:GetLevel() == 0 and predQ.HitChance >= 0.85 then
+        if Zilean.Q:IsReady() and Zilean.W:GetLevel() == 0 and predQ.HitChanceEnum >= HitChanceEnum.VeryHigh then
           if Zilean.E:IsInRange(v) and Zilean.E:IsReady() and (Zilean.Q:GetManaCost() + Zilean.E:GetManaCost()) <= Player.Mana and MenuValueE then
             if Zilean.E:Cast(v) then return true end
           end
           if MenuValueQ then
             if Zilean.Q:Cast(predQ.CastPosition) then return true end
           end
-        elseif predQ.HitChance >= 0.85 and predHp <= (Zilean.Q:GetDamage(Enemy) * 3) and Zilean.Q:IsInRange(Enemy) then
+        elseif predQ.HitChanceEnum >= HitChanceEnum.VeryHigh and predHp <= (Zilean.Q:GetDamage(Enemy) * 3) and Zilean.Q:IsInRange(Enemy) then
           if Zilean.E:IsInRange(Enemy) and Zilean.E:IsReady() and (Zilean.Q:GetManaCost() + Zilean.E:GetManaCost()) <= Player.Mana and MenuValueE then
             if Zilean.E:Cast(Enemy) then return true end
           end
