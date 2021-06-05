@@ -112,7 +112,7 @@ function Utils.SetMana()
 end
 
 function Utils.GetTargets(Spell)
-  return {TS:GetTarget(Spell.Range,true)}
+  return TS:GetTargets(Spell.Range,true)
 end
 
 function Utils.GetTargetsRange(Range)
@@ -178,9 +178,9 @@ function Sivir.Logic.Combo()
   for k, enemy in pairs(Utils.GetTargets(Sivir.Q)) do
     if Sivir.Q:IsReady() and MenuValueQ then
       local predQ = Sivir.Q:GetPrediction(enemy)
-      if predQ ~= nil and predQ.HitChance >= 0.50 and Sivir.Q:IsInRange(enemy) and Sivir.Q:GetDamage(enemy)*2.0 > enemy.Health then
+      if predQ ~= nil and predQ.HitChanceEnum >= HitChanceEnum.High and Sivir.Q:IsInRange(enemy) and Sivir.Q:GetDamage(enemy)*2.0 > enemy.Health then
         if Sivir.Q:Cast(predQ.CastPosition) then return true end
-      elseif predQ ~= nil and predQ.HitChance >= 0.50 and Sivir.Q:IsInRange(enemy) and Player.Mana > rMana + qMana then
+      elseif predQ ~= nil and predQ.HitChanceEnum >= HitChanceEnum.High and Sivir.Q:IsInRange(enemy) and Player.Mana > rMana + qMana then
         if Sivir.Q:Cast(predQ.CastPosition) then return true end
       end
     end
