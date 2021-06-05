@@ -2,10 +2,10 @@ if Player.CharName ~= "Ezreal" then return end
 
 module("Simple Ezreal", package.seeall, log.setup)
 clean.module("Simple Ezreal", clean.seeall, log.setup)
-
 local CoreEx = _G.CoreEx
 local Libs = _G.Libs
-
+local ScriptName, Version = "SimpleEzreal", "1.0.0"
+--CoreEx.AutoUpdate("https://github.com/SamuelLachance/Robur/" .. ScriptName ..".lua", Version)
 local Menu = Libs.NewMenu
 local Prediction = Libs.Prediction
 local Orbwalker = Libs.Orbwalker
@@ -42,7 +42,7 @@ local overkill = 0
 
 Ezreal.Q = SpellLib.Skillshot({
   Slot = SpellSlots.Q,
-  Range = 1250,
+  Range = 1230,
   Delay = 0.25,
   Speed = 2000,
   Radius = 60,
@@ -54,7 +54,7 @@ Ezreal.Q = SpellLib.Skillshot({
 
 Ezreal.W = SpellLib.Skillshot({
   Slot = SpellSlots.W,
-  Range = 1250,
+  Range = 1230,
   Delay = 0.25,
   Speed = 1700,
   Radius = 60,
@@ -251,10 +251,11 @@ function Ezreal.Logic.Combo()
       end
     end
   end
-  if MenuValueE and Ezreal.E:IsReady() and not IsInTurret and (Player.Health/Player.MaxHealth)*100 > 40 and Game.GetTime() - overkill > 0.2  then
+  if MenuValueE and Ezreal.E:IsReady() and not IsInTurret and (Player.Health/Player.MaxHealth)*100 > 40 and Game.GetTime() - overkill > 0.3  then
     for k, enemy in pairs(ObjectManager.GetNearby("enemy", "heroes")) do
       if Utils.IsValidTarget(enemy) and enemy:Distance(Renderer.GetMousePos()) + 300 < Player:Distance(enemy.Position) and Player:Distance(enemy.Position) > Orbwalker.GetTrueAutoAttackRange() and Player:Distance(enemy.Position) <= 1300 then
         local dashPos = Vector(Player.Position,Renderer.GetMousePos(),Ezreal.E.Range)
+        local ePred = Ezreal.E:GetPrediction(enemy)
         if Utils.CountEnemiesInRange(dashPos, 900) < 3 then
           local dmg = 0
           if Player:Distance(enemy.Position) <= 950 then
@@ -269,8 +270,8 @@ function Ezreal.Logic.Combo()
           if Ezreal.W:IsReady() and Player.Mana > qMana + eMana + wMana then
             dmg = dmg + Ezreal.W:GetDamage(enemy)
           end
-          if dmg > enemy.Health and Utils.ValidUlt(enemy) then
-            if Ezreal.E:Cast(dashPos) then return true end
+          if dmg > enemy.Health and Utils.ValidUlt(enemy) and ePred ~= nil then
+            if Ezreal.E:Cast(ePred.CastPosition) then return true end
           end
         end
       end
@@ -406,7 +407,7 @@ function Ezreal.Logic.Auto()
       end
     end
     if Menu.Get("AutoRcc") and Ezreal.R:IsReady() and Player.Mana > rMana and not IsInTurret then
-      if not target.CanMove and Player:Distance(target.Position) <= 3000 and Utils.IsValidTarget(target) and Utils.CountHeroes(Player,800,"enemy") == 0 then
+      if not target.CanMove and Player:Distance(target.Position) <= 2000 and Utils.IsValidTarget(target) and Utils.CountHeroes(Player,800,"enemy") == 0 then
         if Ezreal.R:Cast(target.Position) then return true end
       end
     end
