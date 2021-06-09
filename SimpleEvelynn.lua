@@ -242,7 +242,7 @@ function Evelynn.Logic.Combo()
         if Evelynn.Q2:Cast(enemy) then return true end
       else
         local qPred = Evelynn.Q:GetPrediction(enemy)
-        if qPred ~= nil and qPred.HitChanceEnum >= HitChanceEnum.Medium and not Evelynn.W:IsReady() then
+        if qPred ~= nil and qPred.HitChanceEnum >= HitChanceEnum.Medium then
           if Evelynn.Q:Cast(qPred.CastPosition) then return true end
         end
       end
