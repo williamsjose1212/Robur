@@ -84,6 +84,7 @@ Evelynn.TargetSelector = nil
 Evelynn.Logic = {}
 
 local Utils = {}
+local LastW = 0
 
 function Utils.IsGameAvailable()
   return not (
@@ -242,7 +243,7 @@ function Evelynn.Logic.Combo()
         if Evelynn.Q2:Cast(enemy) then return true end
       else
         local qPred = Evelynn.Q:GetPrediction(enemy)
-        if qPred ~= nil and qPred.HitChanceEnum >= HitChanceEnum.Medium then
+        if qPred ~= nil and qPred.HitChanceEnum >= HitChanceEnum.Medium and (not Evelynn.W:IsReady() or Player.Mana < qMana + eMana + rMana) and Game.GetTime() - LastW > 1  then
           if Evelynn.Q:Cast(qPred.CastPosition) then return true end
         end
       end
@@ -417,7 +418,13 @@ function Evelynn.Logic.Auto()
   end
   return false
 end
-
+function Evelynn.OnProcessSpell(sender,spell)
+  if sender.IsMe and spell.Name == "EvelynnWApplyMark" and Menu.Get("Combo.WaitW") then
+    printf(spell.Name)
+    LastW = Game.GetTime()
+  end
+  return false
+end
 function Evelynn.OnDraw()
   if Player.IsVisible and Player.IsOnScreen and not Player.IsDead then
     local Pos = Player.Position
