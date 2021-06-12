@@ -282,6 +282,7 @@ end
 
 function Ezreal.Logic.Harass()
   if Menu.Get("ManaSlider") >= Player.ManaPercent * 100 then return false end
+  if not Menu.Get("HarassOn") then return false end
   local MenuValueQ = Menu.Get("Harass.Q")
   local MenuValueW = Menu.Get("Harass.W")
   if MenuValueQ and Ezreal.Q:IsReady() and Player.Mana > qMana + wMana then
@@ -438,6 +439,18 @@ function Ezreal.OnDraw()
         if Renderer.DrawCircle3D(Pos, v.Range, 30, 3, Menu.Get("Drawing."..v.Key..".Color")) then return true end
       end
     end
+    if Menu.Get("Drawing.Status") then
+      local status, color
+      local p = Player.Position:ToScreen()
+      if Menu.Get("HarassOn") then
+        status, color = "Harass: Enabled", 0x00FF00FF
+        p.x = p.x - 63
+      else
+        status, color = "Harass: Disabled", 0xFF0000FF
+        p.x = p.x - 66
+      end
+      Renderer.DrawText(p, {x=500,y=500}, status, color)
+    end
   end
   return false
 end
@@ -475,11 +488,12 @@ function Ezreal.LoadMenu()
     Menu.Keybind("CastR", "Semi [R] Cast", string.byte('T'))
     Menu.ColoredText("Harass", 0x118AB2FF, true)
     Menu.ColoredText("Mana Percent limit", 0xFFD700FF, true)
-    Menu.Slider("ManaSlider","for Q",80,0,100)
+    Menu.Slider("ManaSlider","for Q",50,0,100)
     Menu.ColoredText("> Q", 0x0066CCFF, false)
     Menu.Checkbox("Harass.Q", "Use Q", true)
     Menu.ColoredText("> W", 0x0066CCFF, false)
     Menu.Checkbox("Harass.W", "Use W", true)
+    Menu.Keybind("HarassOn", "Toggle Harass", string.byte('L'), true)
     Menu.ColoredText("WaveClear/JungleClear", 0xEF476FFF, true)
     Menu.ColoredText("Mana Percent limit", 0xFFD700FF, true)
     Menu.Slider("ManaSliderLane","",35,0,100)
@@ -496,6 +510,7 @@ function Ezreal.LoadMenu()
     Menu.Slider("HitcountR", "HitCount", 3, 1, 5)
     Menu.Separator()
     Menu.ColoredText("Drawing", 0xB65A94FF, true)
+    Menu.Checkbox("Drawing.Status",   "Draw Harass Status",true)
     Menu.Checkbox("Drawing.Q.Enabled",   "Draw [Q] Range",true)
     Menu.ColorPicker("Drawing.Q.Color", "Draw [Q] Color", 0x118AB2FF)
     Menu.Checkbox("Drawing.E.Enabled",   "Draw [E] Range",false)
