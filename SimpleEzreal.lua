@@ -282,7 +282,6 @@ end
 
 function Ezreal.Logic.Harass()
   if Menu.Get("ManaSlider") >= Player.ManaPercent * 100 then return false end
-  if not Menu.Get("HarassOn") then return false end
   local MenuValueQ = Menu.Get("Harass.Q")
   local MenuValueW = Menu.Get("Harass.W")
   if MenuValueQ and Ezreal.Q:IsReady() and Player.Mana > qMana + wMana then
@@ -427,6 +426,28 @@ function Ezreal.Logic.Auto()
       if Ezreal.R:Cast(rCastPos) then return true end
     end
   end
+  if Menu.Get("HarassOn") then
+    local MenuValueQ = Menu.Get("Harass.Q")
+    local MenuValueW = Menu.Get("Harass.W")
+    if MenuValueQ and Ezreal.Q:IsReady() and Player.Mana > qMana + wMana then
+      for k, enemy in ipairs(TS:GetTargets(Ezreal.Q.Range, true)) do
+        local qPred = Ezreal.Q:GetPrediction(enemy)
+        if not Ezreal.W:IsReady() or not MenuValueW or not Ezreal.W:CanCast(enemy) then
+          if qPred ~= nil and qPred.HitChanceEnum >= HitChanceEnum.High and Utils.IsValidTarget(enemy) then
+            if Ezreal.Q:Cast(qPred.CastPosition) then return true end
+          end
+        end
+      end
+    end
+    if MenuValueW and Ezreal.W:IsReady() and Player.Mana > wMana + qMana then
+      for k, enemy in ipairs(TS:GetTargets(Ezreal.W.Range, false)) do
+        local wPred = Ezreal.W:GetPrediction(enemy)
+        if wPred ~= nil and wPred.HitChanceEnum >= HitChanceEnum.High and Utils.IsValidTarget(enemy) then
+          if Ezreal.W:Cast(wPred.CastPosition) then return true end
+        end
+      end
+    end
+  end
   return false
 end
 
@@ -493,7 +514,7 @@ function Ezreal.LoadMenu()
     Menu.Checkbox("Harass.Q", "Use Q", true)
     Menu.ColoredText("> W", 0x0066CCFF, false)
     Menu.Checkbox("Harass.W", "Use W", true)
-    Menu.Keybind("HarassOn", "Toggle Harass", string.byte('L'), true)
+    Menu.Keybind("HarassOn", "Toggle Auto Harass", string.byte('L'), false)
     Menu.ColoredText("WaveClear/JungleClear", 0xEF476FFF, true)
     Menu.ColoredText("Mana Percent limit", 0xFFD700FF, true)
     Menu.Slider("ManaSliderLane","",35,0,100)
