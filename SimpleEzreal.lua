@@ -334,7 +334,7 @@ function Ezreal.Logic.Waveclear()
         local delay = (Player:Distance(minion.Position)/ Ezreal.Q.Speed + Ezreal.Q.Delay)*1000
         local hpPred = HPred.GetHealthPrediction(minion,delay,false)
         local hpPred2 = HPred.GetHealthPrediction(minion,0.25,false)
-        if hpPred > 0 and hpPred2 < Ezreal.Q:GetDamage(minion) then
+        if hpPred > 0 and minion.Health < Ezreal.Q:GetDamage(minion) then
           if Ezreal.Q:Cast(qPred.CastPosition) then return true end
         end
       end
