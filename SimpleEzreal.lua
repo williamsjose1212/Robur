@@ -42,7 +42,7 @@ local overkill = 0
 
 Ezreal.Q = SpellLib.Skillshot({
   Slot = SpellSlots.Q,
-  Range = 1230,
+  Range = 1210,
   Delay = 0.25,
   Speed = 2000,
   Radius = 60,
@@ -54,7 +54,7 @@ Ezreal.Q = SpellLib.Skillshot({
 
 Ezreal.W = SpellLib.Skillshot({
   Slot = SpellSlots.W,
-  Range = 1230,
+  Range = 1210,
   Delay = 0.25,
   Speed = 1700,
   Radius = 60,
@@ -87,7 +87,6 @@ Ezreal.TargetSelector = nil
 Ezreal.Logic = {}
 
 local Utils = {}
-local IsInTurret = false
 
 function Utils.IsGameAvailable()
   return not (
@@ -129,7 +128,7 @@ function Utils.SetMana()
 end
 
 function Utils.GetTargets(Spell)
-  return {TS:GetTarget(Spell.Range,true)}
+  return TS:GetTargets(Spell.Range,true)
 end
 
 function Utils.GetTargetsRange(Range)
@@ -226,6 +225,22 @@ function Utils.CountHeroes(pos,Range,type)
   return num
 end
 
+function Utils.Sqrd(num)
+  return num*num
+end
+
+function Utils.IsUnderTurret(target)
+  local TurretRange = 562500
+  local turrets = ObjectManager.GetNearby("enemy", "turrets")
+  for _, turret in ipairs(turrets) do
+    if turret.IsDead then return false end
+    if target.Position:DistanceSqr(turret) < TurretRange + Utils.Sqrd(target.BoundingRadius) / 2 then
+      return true
+    end
+  end
+  return false
+end
+
 function Utils.IsValidTarget(Target)
   return Target and Target.IsTargetable and Target.IsAlive
 end
@@ -235,24 +250,24 @@ function Ezreal.Logic.Combo()
   local MenuValueW = Menu.Get("Combo.W")
   local MenuValueE = Menu.Get("Combo.E")
   if MenuValueQ and Ezreal.Q:IsReady() and Player.Mana > rMana + qMana then
-    for k, enemy in ipairs(TS:GetTargets(Ezreal.Q.Range, true)) do
+    for k, enemy in ipairs(Utils.GetTargets(Ezreal.Q)) do
       local qPred = Ezreal.Q:GetPrediction(enemy)
       if not Ezreal.W:IsReady() or not MenuValueW or not Ezreal.W:CanCast(enemy) then
-        if qPred ~= nil and qPred.HitChanceEnum >= HitChanceEnum.High and Utils.IsValidTarget(enemy) then
+        if qPred ~= nil and qPred.HitChanceEnum >= HitChanceEnum.Medium and Utils.IsValidTarget(enemy) then
           if Ezreal.Q:Cast(qPred.CastPosition) then return true end
         end
       end
     end
   end
   if MenuValueW and Ezreal.W:IsReady() and Player.Mana > rMana + wMana + eMana then
-    for k, enemy in ipairs(TS:GetTargets(Ezreal.W.Range, false)) do
+    for k, enemy in ipairs(Utils.GetTargets(Ezreal.W)) do
       local wPred = Ezreal.W:GetPrediction(enemy)
       if wPred ~= nil and wPred.HitChanceEnum >= HitChanceEnum.High and Utils.IsValidTarget(enemy) then
         if Ezreal.W:Cast(wPred.CastPosition) then return true end
       end
     end
   end
-  if MenuValueE and Ezreal.E:IsReady() and not IsInTurret and (Player.Health/Player.MaxHealth)*100 > 40 and Game.GetTime() - overkill > 0.3 then
+  if MenuValueE and Ezreal.E:IsReady() and not Utils.IsUnderTurret(Player) and (Player.Health/Player.MaxHealth)*100 > 40 and Game.GetTime() - overkill > 0.3 then
     for k, enemy in pairs(ObjectManager.GetNearby("enemy", "heroes")) do
       if Utils.IsValidTarget(enemy) and enemy:Distance(Renderer.GetMousePos()) + 300 < Player:Distance(enemy.Position) and Player:Distance(enemy.Position) > Orbwalker.GetTrueAutoAttackRange() and Player:Distance(enemy.Position) <= 1300 then
         local dashPos = Vector(Player.Position):Extended(Renderer.GetMousePos(),Ezreal.E.Range)
@@ -285,7 +300,7 @@ function Ezreal.Logic.Harass()
   local MenuValueQ = Menu.Get("Harass.Q")
   local MenuValueW = Menu.Get("Harass.W")
   if MenuValueQ and Ezreal.Q:IsReady() and Player.Mana > qMana + wMana then
-    for k, enemy in ipairs(TS:GetTargets(Ezreal.Q.Range, true)) do
+    for k, enemy in ipairs(Utils.GetTargets(Ezreal.Q)) do
       local qPred = Ezreal.Q:GetPrediction(enemy)
       if not Ezreal.W:IsReady() or not MenuValueW or not Ezreal.W:CanCast(enemy) then
         if qPred ~= nil and qPred.HitChanceEnum >= HitChanceEnum.High and Utils.IsValidTarget(enemy) then
@@ -295,7 +310,7 @@ function Ezreal.Logic.Harass()
     end
   end
   if MenuValueW and Ezreal.W:IsReady() and Player.Mana > wMana + qMana then
-    for k, enemy in ipairs(TS:GetTargets(Ezreal.W.Range, false)) do
+    for k, enemy in ipairs(Utils.GetTargets(Ezreal.W)) do
       local wPred = Ezreal.W:GetPrediction(enemy)
       if wPred ~= nil and wPred.HitChanceEnum >= HitChanceEnum.High and Utils.IsValidTarget(enemy) then
         if Ezreal.W:Cast(wPred.CastPosition) then return true end
@@ -398,7 +413,7 @@ function Ezreal.Logic.Auto()
         if Ezreal.R:Cast(rPred.CastPosition) then return true end
       end
     end
-    if Menu.Get("AutoR") and Ezreal.R:IsReady() and Player.Mana > rMana and Utils.CountHeroes(Player,800,"enemy") == 0  and Game.GetTime() - overkill > 0.5  and not IsInTurret then
+    if Menu.Get("AutoR") and Ezreal.R:IsReady() and Player.Mana > rMana and Utils.CountHeroes(Player,800,"enemy") == 0  and Game.GetTime() - overkill > 0.5  and not Utils.IsUnderTurret(Player) then
       local delay = (Player:Distance(target.Position)/ Ezreal.R.Speed + Ezreal.R.Delay)*1000
       local hpPred = HPred.GetHealthPrediction(target,delay,false)
       local rPred = Ezreal.R:GetPrediction(target)
@@ -406,13 +421,13 @@ function Ezreal.Logic.Auto()
         if Ezreal.R:Cast(rPred.CastPosition) then return true end
       end
     end
-    if Menu.Get("AutoRcc") and Ezreal.R:IsReady() and Player.Mana > rMana and not IsInTurret then
+    if Menu.Get("AutoRcc") and Ezreal.R:IsReady() and Player.Mana > rMana and not Utils.IsUnderTurret(Player) then
       if not target.CanMove and Player:Distance(target.Position) <= 2000 and Utils.IsValidTarget(target) and Utils.CountHeroes(Player,800,"enemy") == 0 then
         if Ezreal.R:Cast(target.Position) then return true end
       end
     end
   end
-  if Menu.Get("AutoRhit") and Ezreal.R:IsReady() and Player.Mana > rMana and not IsInTurret then
+  if Menu.Get("AutoRhit") and Ezreal.R:IsReady() and Player.Mana > rMana and Utils.IsUnderTurret(Player) then
     local enemies = {}
     for k, enemy in pairs(ObjectManager.Get("enemy", "heroes")) do
       local target = enemy.AsHero
@@ -430,7 +445,7 @@ function Ezreal.Logic.Auto()
     local MenuValueQ = Menu.Get("Harass.Q")
     local MenuValueW = Menu.Get("Harass.W")
     if MenuValueQ and Ezreal.Q:IsReady() and Player.Mana > qMana + wMana then
-      for k, enemy in ipairs(TS:GetTargets(Ezreal.Q.Range, true)) do
+      for k, enemy in ipairs(Utils.GetTargets(Ezreal.Q)) do
         local qPred = Ezreal.Q:GetPrediction(enemy)
         if not Ezreal.W:IsReady() or not MenuValueW or not Ezreal.W:CanCast(enemy) then
           if qPred ~= nil and qPred.HitChanceEnum >= HitChanceEnum.High and Utils.IsValidTarget(enemy) then
@@ -440,7 +455,7 @@ function Ezreal.Logic.Auto()
       end
     end
     if MenuValueW and Ezreal.W:IsReady() and Player.Mana > wMana + qMana then
-      for k, enemy in ipairs(TS:GetTargets(Ezreal.W.Range, false)) do
+      for k, enemy in ipairs(Utils.GetTargets(Ezreal.W)) do
         local wPred = Ezreal.W:GetPrediction(enemy)
         if wPred ~= nil and wPred.HitChanceEnum >= HitChanceEnum.High and Utils.IsValidTarget(enemy) then
           if Ezreal.W:Cast(wPred.CastPosition) then return true end
@@ -479,14 +494,6 @@ end
 function Ezreal.OnUpdate()
   if not Utils.IsGameAvailable() then return false end
   local OrbwalkerMode = Orbwalker.GetMode()
-  for k, v in pairs(ObjectManager.GetNearby("enemy", "turrets")) do
-    local turret = v.AsAI
-    if turret ~= nil and Player:Distance(turret.Position) <= 750 then
-      IsInTurret = true
-    else
-      IsInTurret = false
-    end
-  end
   local OrbwalkerLogic = Ezreal.Logic[OrbwalkerMode]
   if OrbwalkerLogic then
     if OrbwalkerLogic() then return true end
