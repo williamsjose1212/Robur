@@ -397,24 +397,6 @@ end
 
 function Taliyah.Logic.Auto()
   local walkPos = Taliyah.CalculatePos()
-  for k, hero in pairs(ObjectManager.GetNearby("enemy", "heroes")) do
-    local enemy = hero.AsAI
-    if Taliyah.Q:IsReady() and Player.Mana > qMana and Taliyah.Q:IsInRange(enemy) then
-      local enemy = hero.AsAI
-      local delay = (Player:Distance(enemy.Position)/ Taliyah.Q.Speed + Taliyah.Q.Delay)*1000
-      local hpPred = HPred.GetHealthPrediction(enemy,delay,false)
-      if hpPred < Taliyah.Q:GetDamage(enemy) + Taliyah.W:GetDamage(enemy) and Utils.IsValidTarget(enemy) then
-        overkill = Game.GetTime()
-      end
-    end
-    if Taliyah.W:IsReady() and Player.Mana > wMana and Taliyah.W:IsInRange(enemy) then
-      local delay = (Player:Distance(enemy.Position)/ Taliyah.W.Speed + Taliyah.W.Delay)*1000
-      local hpPred = HPred.GetHealthPrediction(enemy,delay,false)
-      if hpPred < Taliyah.W:GetDamage(enemy) and Utils.IsValidTarget(enemy) then
-        overkill = Game.GetTime()
-      end
-    end
-  end
   if Menu.Get("Misc.LockQ") and walkPos ~= nil and next(Qobj) ~= nil then
     if Player:Distance(walkPos) < 500 and not Nav.IsWall(walkPos) and Player:Distance(walkPos) > 30 then
       if Input.MoveTo(walkPos) then return true end
