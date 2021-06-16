@@ -212,8 +212,27 @@ function Utils.CountHeroes(pos,Range,type)
   return num
 end
 
+function Utils.GetDamage(target)
+  local dmg = 0
+  local bonusdmg = 1
+  if target.Health/target.MaxHealth * 100 < 30 then
+    bonusdmg = 2.4
+  end
+  if Evelynn.Q:IsReady() or isq2 then
+    dmg = dmg + Evelynn.Q2:GetDamage(target)*3
+  end
+  if Evelynn.E:IsReady() then
+    dmg = dmg + Evelynn.E:GetDamage(target)
+  end
+  if Evelynn.R:IsReady() then
+    dmg = dmg + Evelynn.R:GetDamage(target)*bonusdmg
+  end
+  return dmg
+end
+
 function Utils.WaitForW(enemy)
   if not Menu.Get("Combo.WaitW") then return false end
+  if Utils.GetDamage(enemy) > enemy.Health then return false end
   local target = enemy.AsAI
   if target ~= nil and target.IsValid then
     local eveWbuff = target:GetBuff("EvelynnW")
@@ -248,7 +267,7 @@ function Evelynn.Logic.Combo()
         if Evelynn.Q2:Cast(enemy) then return true end
       else
         local qPred = Evelynn.Q:GetPrediction(enemy)
-        if qPred ~= nil and Utils.IsValidTarget(enemy) and qPred.HitChanceEnum >= HitChanceEnum.Medium and (not Evelynn.W:IsReady() or Player.Mana < qMana + eMana + rMana or Player:Distance(enemy.Position) < 600 ) and Game.GetTime() - LastW > 1  then
+        if qPred ~= nil and Utils.IsValidTarget(enemy) and qPred.HitChanceEnum >= HitChanceEnum.Medium and (not Evelynn.W:IsReady() or Player.Mana < qMana + eMana + rMana or Player:Distance(enemy.Position) < 600 or Utils.GetDamage(enemy) > enemy.Health) and Game.GetTime() - LastW > 1  then
           if Evelynn.Q:Cast(qPred.CastPosition) then return true end
         end
       end
@@ -282,7 +301,7 @@ function Evelynn.Logic.Combo()
       end
     end
   end
-  if MenuValueR and Player.Mana > rMana and Evelynn.R:IsReady() and Game.GetTime() - overkill > 0.3 then
+  if MenuValueR and Player.Mana > rMana and Evelynn.R:IsReady() then
     for k, enemy in pairs(Utils.GetTargets(Evelynn.R)) do
       local rPred = Evelynn.R:GetPrediction(enemy)
       local delay = (Player:Distance(enemy.Position)/ Evelynn.R.Speed + Evelynn.R.Delay)*1000
@@ -291,11 +310,11 @@ function Evelynn.Logic.Combo()
       if enemy.Health/enemy.MaxHealth * 100 < 30 then
         bonusdmg = 2.4
       end
-      if rPred ~= nil and hpPred < Evelynn.R:GetDamage(enemy)*bonusdmg and Utils.ValidUlt(enemy) and rPred.HitChanceEnum >= HitChanceEnum.High  and Utils.IsValidTarget(enemy) then
+      if rPred ~= nil and hpPred < Evelynn.R:GetDamage(enemy)*bonusdmg and Utils.ValidUlt(enemy) and rPred.HitChanceEnum >= HitChanceEnum.High  and Utils.IsValidTarget(enemy) and Game.GetTime() - overkill > 0.3  then
         if Evelynn.R:Cast(rPred.CastPosition) then return true end
       end
       if (Player.Health/Player.MaxHealth) * 100 < 60 then
-        local incomingDamage = HPred.GetDamagePrediction(Player,1,true)
+        local incomingDamage = HPred.GetDamagePrediction(Player,1,false)
         local enemies = Utils.CountHeroes(Player,700,"enemy")
         if rPred ~= nil and incomingDamage > 0 and Player.Health - incomingDamage < enemies * Player.Level * 15 then
           if Evelynn.R:Cast(rPred.CastPosition) then return true end
@@ -413,11 +432,11 @@ end
 function Evelynn.Logic.Auto()
   for k, hero in pairs(ObjectManager.GetNearby("enemy", "heroes")) do
     local enemy = hero.AsAI
-    if Evelynn.Q:IsReady() or Evelynn.Q2:IsReady() and Player.Mana > qMana and Evelynn.Q2:IsInRange(enemy) then
+    if Evelynn.Q:IsReady() or isq2 and Player.Mana > qMana and Evelynn.Q2:IsInRange(enemy) then
       local enemy = hero.AsAI
       local delay = (Player:Distance(enemy.Position)/ Evelynn.Q.Speed + Evelynn.Q.Delay)*1000
       local hpPred = HPred.GetHealthPrediction(enemy,delay,false)
-      if hpPred < Evelynn.Q:GetDamage(enemy)*3 and Utils.IsValidTarget(enemy) then
+      if hpPred < Evelynn.Q2:GetDamage(enemy) + Evelynn.E:GetDamage(enemy) and Utils.IsValidTarget(enemy) then
         overkill = Game.GetTime()
       end
     end
