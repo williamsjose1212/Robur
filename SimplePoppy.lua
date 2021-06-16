@@ -30,7 +30,7 @@ local SpellSlots = Enums.SpellSlots
 local SpellStates = Enums.SpellStates
 local BuffTypes = Enums.BuffTypes
 local Events = Enums.Events
-local HitChance = Enums.HitChance
+local HitChanceEnum = Enums.HitChance
 
 local Nav = CoreEx.Nav
 
@@ -86,7 +86,7 @@ function Utils.IsGameAvailable()
 end
 
 function Utils.GetTargets(Spell)
-  return {TS:GetTarget(Spell.Range,true)}
+  return TS:GetTargets(Spell.Range,true)
 end
 
 function Utils.IsValidTarget(Target)
@@ -96,7 +96,7 @@ end
 function Utils.CanStun(target)
   local targetStun = target.AsHero
   if targetStun ~= nil and targetStun.IsValid then
-    local FinalPosition = targetStun.Position + (Vector(targetStun.Position) - Player.Position):Normalized() * (300 +targetStun.BoundingRadius+Player.BoundingRadius)
+    local FinalPosition = targetStun.Position + (Vector(targetStun.Position) - Player.Position):Normalized() * (300 +targetStun.BoundingRadius)
     if (Nav.IsWall(FinalPosition)) then
       return true
     end
@@ -105,7 +105,7 @@ function Utils.CanStun(target)
 end
 
 function Utils.GetTargetsRange(Range)
-  return {TS:GetTarget(Range,true)}
+  return TS:GetTargets(Range,true)
 end
 
 function Poppy.Logic.Combo()
@@ -113,12 +113,8 @@ function Poppy.Logic.Combo()
   if Poppy.Q:IsReady() and Menu.Get("Combo.Q") then
     for k,v in pairs(Utils.GetTargets(Poppy.Q)) do
       local predQ = Poppy.Q:GetPrediction(v)
-      if predQ ~= nil then
-        if Utils.IsValidTarget(v) then
-          if predQ.HitChance >= 0.50 then
-            if Poppy.Q:Cast(predQ.CastPosition)then return true end
-          end
-        end
+      if predQ ~= nil and predQ.HitChanceEnum >= HitChanceEnum.Medium and Utils.IsValidTarget(v) then
+        if Poppy.Q:Cast(predQ.CastPosition)then return true end
       end
     end
   end
@@ -166,12 +162,8 @@ function Poppy.Logic.Harass()
   if Poppy.Q:IsReady() and Menu.Get("Harass.Q") then
     for k,v in pairs(Utils.GetTargets(Poppy.Q)) do
       local predQ = Poppy.Q:GetPrediction(v)
-      if predQ ~= nil then
-        if Utils.IsValidTarget(v) then
-          if predQ.HitChance >= 0.60 then
-            if  Poppy.Q:Cast(predQ.CastPosition)then return true end
-          end
-        end
+      if predQ ~= nil and predQ ~= nil and predQ.HitChanceEnum >= HitChanceEnum.Medium and Utils.IsValidTarget(v) then
+        if Poppy.Q:Cast(predQ.CastPosition)then return true end
       end
     end
   end
@@ -261,7 +253,7 @@ end
 
 
 function Poppy.OnGapclose(source,dash)
-  if source.IsEnemy and source.IsHero and Menu.Get("AutoW") and Poppy.W:IsReady() and not dash.IsBlink then
+  if source.IsEnemy and source.IsHero and Menu.Get("AutoW") and Poppy.W:IsReady() and not dash.IsBlink and dash.IsGapClose then
     local paths = dash:GetPaths()
     local endPos = paths[#paths].EndPos
     local startPos = paths[#paths].StartPos
