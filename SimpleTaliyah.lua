@@ -381,7 +381,7 @@ function Taliyah.Logic.Waveclear()
       if not minion.IsAI then return false end
       local wPredPos, hitCountW = Taliyah.W:GetBestCircularCastPos(monstersQ,Taliyah.W.Radius)
       local ePredPos , hitCountE = Taliyah.E:GetBestCircularCastPos(monstersQ,Taliyah.E.Radius)
-      if wPredPos ~= nil and Menu.Get("JungleClear.W") and hitCountW >= 1 and Taliyah.W:IsReady() and Taliyah.E:IsReady() and Player.Mana > wMana + eMana + qMana and Taliyah.W:IsInRange(minion) then
+      if wPredPos ~= nil and Menu.Get("JungleClear.W") and hitCountW >= 1 and Taliyah.W:IsReady() and (Taliyah.E:IsReady() or Taliyah.E:GetLevel() == 0) and Player.Mana > wMana + eMana + qMana and Taliyah.W:IsInRange(minion) then
         if Input.Cast(SpellSlots.W,Player.Position,wPredPos) then return true end
       end
       if ePredPos ~= nil and Menu.Get("JungleClear.E") and hitCountW >= 1 and not Taliyah.W:IsReady() and Taliyah.E:IsReady() and Player.Mana > wMana + eMana + qMana and Taliyah.E:IsInRange(minion) then
