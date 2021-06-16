@@ -311,7 +311,7 @@ end
 
 function Sivir.OnProcessSpell(sender,spell)
   if sender.IsHero and sender.IsEnemy and Menu.Get("AutoE") and Sivir.E:IsReady() then
-    if spell.Target and spell.Target.IsHero and spell.Target.IsMe then
+    if spell.Target and spell.Target.IsHero and spell.Target.IsMe and not spell.IsBasicAttack then
       if Sivir.E:Cast() then return true end
     end
   end
