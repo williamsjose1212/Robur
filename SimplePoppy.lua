@@ -253,7 +253,7 @@ end
 
 
 function Poppy.OnGapclose(source,dash)
-  if source.IsEnemy and source.IsHero and Menu.Get("AutoW") and Poppy.W:IsReady() and not dash.IsBlink and dash.IsGapClose then
+  if source.IsEnemy and source.IsHero and Menu.Get("AutoW") and Poppy.W:IsReady() then
     local paths = dash:GetPaths()
     local endPos = paths[#paths].EndPos
     local startPos = paths[#paths].StartPos
