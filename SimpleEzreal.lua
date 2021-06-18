@@ -262,7 +262,7 @@ function Ezreal.Logic.Combo()
   if MenuValueW and Ezreal.W:IsReady() and Player.Mana > rMana + wMana + eMana then
     for k, enemy in ipairs(Utils.GetTargets(Ezreal.W)) do
       local wPred = Ezreal.W:GetPrediction(enemy)
-      if wPred ~= nil and wPred.HitChanceEnum >= HitChanceEnum.Medium and Utils.IsValidTarget(enemy) then
+      if wPred ~= nil and wPred.HitChanceEnum >= HitChanceEnum.High and Utils.IsValidTarget(enemy) then
         if Ezreal.W:Cast(wPred.TargetPosition) then return true end
       end
     end
