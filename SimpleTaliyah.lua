@@ -285,11 +285,11 @@ function Taliyah.Logic.Combo()
       local wPredPos , wHitCount = Taliyah.W:GetBestCircularCastPos(Utils.GetTargets(Taliyah.W),Taliyah.W.Radius)
       if wPred ~= nil and wPred.HitChanceEnum >= HitChanceEnum.VeryHigh and Utils.IsValidTarget(enemy) and (Taliyah.E:IsReady() or Utils.GetDamage(enemy) > hpPred or Player.Health - incomingDamage < enemies * Player.Level * 15 or eIsOn or Taliyah.E:GetLevel() == 0 or wHitCount > 1 )  and Player:Distance(enemy.Position) > 420 then
         if wPred.TargetPosition:Distance(wPred.CastPosition) <= 200 then
-          if Input.Cast(SpellSlots.W,Player.Position,wPred.TargetPosition) then return true end
+          if Input.Cast(SpellSlots.W,Player.Position,wPred.CastPosition) then return true end
         end
       elseif wPred ~= nil and wPred.HitChanceEnum >= HitChanceEnum.VeryHigh and Utils.IsValidTarget(enemy) and (Taliyah.E:IsReady() or Utils.GetDamage(enemy) > hpPred or Player.Health - incomingDamage < enemies * Player.Level * 15 or eIsOn or Taliyah.E:GetLevel() == 0 or wHitCount > 1) and Player:Distance(enemy.Position) < 420 then
         if wPred.TargetPosition:Distance(wPred.CastPosition) <= 200 then
-          if Input.Cast(SpellSlots.W,-Player.Direction,wPred.TargetPosition) then return true end
+          if Input.Cast(SpellSlots.W,-Player.Direction,wPred.CastPosition) then return true end
         end
       end
     end
