@@ -457,7 +457,7 @@ end
 function Taliyah.OnCastStop(sender, spell)
   if sender.IsMe and spell.Name == "TaliyahWVC" and Menu.Get("Misc.AutoE") then
     if Taliyah.E:IsReady() and Player.Mana > eMana then
-      for k, enemy in ipairs(Utils.GetTargetsRange(1050)) do
+      for k, enemy in ipairs(Utils.GetTargetsRange(1500)) do
         local ePred = Taliyah.E:GetPrediction(enemy)
         if ePred ~= nil and Utils.IsValidTarget(enemy) then
           local ePredTP = ePred.TargetPosition
