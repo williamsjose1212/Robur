@@ -53,6 +53,7 @@ local eOnGround = {}
 local qFive = {}
 local Qobj = {}
 local fullQ = false
+local eIsOn = false
 Taliyah.Q = SpellLib.Skillshot({
   Slot = SpellSlots.Q,
   Range = 1000,
@@ -282,11 +283,11 @@ function Taliyah.Logic.Combo()
       local enemies = Utils.CountHeroes(Player,700,"enemy")
       local wPred = Taliyah.W:GetPrediction(enemy)
       local wPredPos , wHitCount = Taliyah.W:GetBestCircularCastPos(Utils.GetTargets(Taliyah.W),Taliyah.W.Radius)
-      if wPred ~= nil and wPred.HitChanceEnum >= HitChanceEnum.VeryHigh and Utils.IsValidTarget(enemy) and (Taliyah.E:IsReady() or Utils.GetDamage(enemy) > hpPred or Player.Health - incomingDamage < enemies * Player.Level * 15 or eOnGround or Taliyah.E:GetLevel() == 0 or wHitCount > 1 )  and Player:Distance(enemy.Position) > 420 then
+      if wPred ~= nil and wPred.HitChanceEnum >= HitChanceEnum.VeryHigh and Utils.IsValidTarget(enemy) and (Taliyah.E:IsReady() or Utils.GetDamage(enemy) > hpPred or Player.Health - incomingDamage < enemies * Player.Level * 15 or eIsOn or Taliyah.E:GetLevel() == 0 or wHitCount > 1 )  and Player:Distance(enemy.Position) > 420 then
         if wPred.TargetPosition:Distance(wPred.CastPosition) <= 200 then
           if Input.Cast(SpellSlots.W,Player.Position,wPred.TargetPosition) then return true end
         end
-      elseif wPred ~= nil and wPred.HitChanceEnum >= HitChanceEnum.VeryHigh and Utils.IsValidTarget(enemy) and (Taliyah.E:IsReady() or Utils.GetDamage(enemy) > hpPred or Player.Health - incomingDamage < enemies * Player.Level * 15 or eOnGround or Taliyah.E:GetLevel() == 0 or wHitCount > 1) and Player:Distance(enemy.Position) < 420 then
+      elseif wPred ~= nil and wPred.HitChanceEnum >= HitChanceEnum.VeryHigh and Utils.IsValidTarget(enemy) and (Taliyah.E:IsReady() or Utils.GetDamage(enemy) > hpPred or Player.Health - incomingDamage < enemies * Player.Level * 15 or eIsOn or Taliyah.E:GetLevel() == 0 or wHitCount > 1) and Player:Distance(enemy.Position) < 420 then
         if wPred.TargetPosition:Distance(wPred.CastPosition) <= 200 then
           if Input.Cast(SpellSlots.W,-Player.Direction,wPred.TargetPosition) then return true end
         end
@@ -474,7 +475,7 @@ function Taliyah.OnCreateObject(obj)
       if table.insert(Qobj,obj) then return true end
     end
   end
-  if obj ~= nil and obj.IsValid and obj.IsVisible and obj.Name == "Taliyah_Base_E_Mines.troy" then
+  if obj ~= nil and obj.IsValid and obj.IsVisible and obj.Name == "Taliyah_Base_E_Mines" then
     if table.insert(eOnGround,obj) then return true end
   end
   if obj ~= nil and obj.IsValid and obj.IsVisible and obj.Name == "Taliyah_Base_Q_aoe_bright" then
@@ -489,7 +490,7 @@ function Taliyah.OnDeleteObject(obj)
       if table.remove(Qobj,Utils.tablefind(Qobj,obj)) then return true end
     end
   end
-  if obj ~= nil and obj.IsValid and obj.IsVisible and obj.Name == "Taliyah_Base_E_Timeout.troy" then
+  if obj ~= nil and obj.IsValid and obj.IsVisible and obj.Name == "Taliyah_Base_E_Timeout" then
     if table.remove(eOnGround,Utils.tablefind(Qobj,obj)) then return true end
   end
   if obj ~= nil and obj.IsValid and obj.IsVisible and obj.Name == "Taliyah_Base_Q_aoe_bright" then
@@ -536,8 +537,18 @@ function Taliyah.OnUpdate()
       fullQ = true
     end
   end
+  for k, v in pairs(eOnGround) do
+    if v.IsValid then
+      eIsOn = true
+    else
+      eIsOn = false
+    end
+  end
   if next(qFive) == nil then
     fullQ = true
+  end
+  if next(eOnGround) == nil then
+    eIsOn = false
   end
   local OrbwalkerLogic = Taliyah.Logic[OrbwalkerMode]
   if OrbwalkerLogic then
