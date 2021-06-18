@@ -283,11 +283,11 @@ function Taliyah.Logic.Combo()
       local enemies = Utils.CountHeroes(Player,700,"enemy")
       local wPred = Taliyah.W:GetPrediction(enemy)
       local wPredPos , wHitCount = Taliyah.W:GetBestCircularCastPos(Utils.GetTargets(Taliyah.W),Taliyah.W.Radius)
-      if wPred ~= nil and Utils.IsValidTarget(enemy) and wPred.HitChanceEnum >= HitChanceEnum.Low and (Taliyah.E:IsReady() or Utils.GetDamage(enemy) > hpPred or Player.Health - incomingDamage < enemies * Player.Level * 15 or eIsOn or Taliyah.E:GetLevel() == 0 or wHitCount > 1 )  and Player:Distance(enemy.Position) > 420 then
+      if wPred ~= nil and Utils.IsValidTarget(enemy) and wPred.HitChanceEnum >= HitChanceEnum.High and (Taliyah.E:IsReady() or Utils.GetDamage(enemy) > hpPred or Player.Health - incomingDamage < enemies * Player.Level * 15 or eIsOn or Taliyah.E:GetLevel() == 0 or wHitCount > 1 )  and Player:Distance(enemy.Position) > 420 then
         if wPred.TargetPosition:Distance(wPred.CastPosition) <= 400 then
           if Input.Cast(SpellSlots.W,Player.Position,wPred.CastPosition) then return true end
         end
-      elseif wPred ~= nil and Utils.IsValidTarget(enemy) and wPred.HitChanceEnum >= HitChanceEnum.Low and (Taliyah.E:IsReady() or Utils.GetDamage(enemy) > hpPred or Player.Health - incomingDamage < enemies * Player.Level * 15 or eIsOn or Taliyah.E:GetLevel() == 0 or wHitCount > 1) and Player:Distance(enemy.Position) < 420 then
+      elseif wPred ~= nil and Utils.IsValidTarget(enemy) and wPred.HitChanceEnum >= HitChanceEnum.High and (Taliyah.E:IsReady() or Utils.GetDamage(enemy) > hpPred or Player.Health - incomingDamage < enemies * Player.Level * 15 or eIsOn or Taliyah.E:GetLevel() == 0 or wHitCount > 1) and Player:Distance(enemy.Position) < 420 then
         if wPred.TargetPosition:Distance(wPred.CastPosition) <= 400 then
           if Input.Cast(SpellSlots.W,-Player.Direction,wPred.CastPosition) then return true end
         end
