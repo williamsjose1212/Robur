@@ -305,7 +305,7 @@ function Taliyah.Logic.Combo()
   if MenuValueQ and Taliyah.Q:IsReady() and Player.Mana > qMana then
     for k, enemy in ipairs(Utils.GetTargets(Taliyah.Q)) do
       local qPred = Taliyah.Q:GetPrediction(enemy)
-      if fullQ or not Menu.Get("Combo.FullQ") then
+      if fullQ or not Menu.Get("Combo.FullQ") or  Utils.GetDamage(enemy) >= enemy.Health then
         if qPred ~= nil and qPred.HitChanceEnum >= HitChanceEnum.Medium and Utils.IsValidTarget(enemy) then
           if Taliyah.Q:Cast(qPred.CastPosition) then return true end
         end
