@@ -124,7 +124,7 @@ function Poppy.Logic.Combo()
       if Utils.IsValidTarget(v) and Poppy.E:IsInRange(v) then
         if Utils.CanStun(v) then
           if Poppy.E:Cast(v) then return true end
-        elseif Poppy.Q:GetDamage(v) * 2.5 >= predHp and (Poppy.Q:IsReady() or _Q.RemainingCooldown < 3.0) then
+        elseif Poppy.Q:GetDamage(v) * 2 >= predHp and (Poppy.Q:IsReady() or _Q.RemainingCooldown < 3.0) then
           if Poppy.E:Cast(v) then return true end
         elseif Poppy.E:GetDamage(v) * 1.5 >= predHp then
           if Poppy.E:Cast(v) then return true end
@@ -144,10 +144,10 @@ function Poppy.Logic.Combo()
       local predHp = HPred.GetHealthPrediction(v,2,true)
       local predR = Poppy.R:GetPrediction(v)
       if Utils.IsValidTarget(v) and Poppy.R:IsInRange(v) then
-        if not v.CanMove then
-          Poppy.R:CastOnHitChance(v,Enums.HitChance.Immobile)
+        if not v.CanMove and predR.HitChanceEnum >= HitChanceEnum.VeryHigh then
+          Poppy.R:Cast(predR.CastPosition)
           if  Orbwalker.MoveTo(nil) then return true end
-        elseif Poppy.Q:GetDamage(v) * 2.5 >= predHp and predR ~= nil and predR.HitChance >= 0.60 then
+        elseif Poppy.Q:GetDamage(v) * 2.5 >= predHp and predR ~= nil and predR.HitChanceEnum >= HitChanceEnum.VeryHigh then
           Poppy.R:Cast(predR.CastPosition)
           if Orbwalker.MoveTo(nil) then return true end
         end
