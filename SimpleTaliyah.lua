@@ -42,14 +42,17 @@ local Events = Enums.Events
 local HitChanceEnum = Enums.HitChance
 local Nav = CoreEx.Nav
 
+local next = next
 local Taliyah = {}
 local qMana = 0
 local wMana = 0
 local eMana = 0
 local rMana = 0
 local overkill = 0
-local eOnGround = false
-local qFive = true
+local eOnGround = {}
+local qFive = {}
+local Qobj = {}
+local fullQ = false
 Taliyah.Q = SpellLib.Skillshot({
   Slot = SpellSlots.Q,
   Range = 1000,
@@ -66,7 +69,7 @@ Taliyah.W = SpellLib.Skillshot({
   Slot = SpellSlots.W,
   Range = 900,
   Delay = 1,
-  Radius = 100,
+  Radius = 200,
   Type = "Circular",
   Key = "W"
 })
@@ -97,7 +100,6 @@ Taliyah.TargetSelector = nil
 Taliyah.Logic = {}
 
 local Utils = {}
-local Qobj = {}
 local IsInTurret = false
 
 function Utils.IsGameAvailable()
@@ -280,14 +282,14 @@ function Taliyah.Logic.Combo()
       local enemies = Utils.CountHeroes(Player,700,"enemy")
       local wPred = Taliyah.W:GetPrediction(enemy)
       local wPredPos , wHitCount = Taliyah.W:GetBestCircularCastPos(Utils.GetTargets(Taliyah.W),Taliyah.W.Radius)
-      if wPred ~= nil and wPred.HitChanceEnum >= HitChanceEnum.Medium and Utils.IsValidTarget(enemy) and (Taliyah.E:IsReady() or Utils.GetDamage(enemy) > hpPred or Player.Health - incomingDamage < enemies * Player.Level * 15 or eOnGround or Taliyah.E:GetLevel() == 0 or wHitCount > 1 )  and Player:Distance(enemy.Position) > 420 then
-        if wPred.TargetPosition:Distance(wPred.CastPosition) <= 200 then
-          if Input.Cast(SpellSlots.W,Player.Position,wPred.TargetPosition) then return true end
-        end
-      elseif wPred ~= nil and wPred.HitChanceEnum >= HitChanceEnum.Medium and Utils.IsValidTarget(enemy) and (Taliyah.E:IsReady() or Utils.GetDamage(enemy) > hpPred or Player.Health - incomingDamage < enemies * Player.Level * 15 or eOnGround or Taliyah.E:GetLevel() == 0 or wHitCount > 1) and Player:Distance(enemy.Position) < 420 then
-        if wPred.TargetPosition:Distance(wPred.CastPosition) <= 200 then
-          if Input.Cast(SpellSlots.W,-Player.Direction,wPred.TargetPosition) then return true end
-        end
+      if wPred ~= nil and wPred.HitChanceEnum >= HitChanceEnum.VeryHigh and Utils.IsValidTarget(enemy) and (Taliyah.E:IsReady() or Utils.GetDamage(enemy) > hpPred or Player.Health - incomingDamage < enemies * Player.Level * 15 or eOnGround or Taliyah.E:GetLevel() == 0 or wHitCount > 1 )  and Player:Distance(enemy.Position) > 420 then
+				if wPred.TargetPosition:Distance(wPred.CastPosition) <= 200 then
+					if Input.Cast(SpellSlots.W,Player.Position,wPred.TargetPosition) then return true end
+				end
+      elseif wPred ~= nil and wPred.HitChanceEnum >= HitChanceEnum.VeryHigh and Utils.IsValidTarget(enemy) and (Taliyah.E:IsReady() or Utils.GetDamage(enemy) > hpPred or Player.Health - incomingDamage < enemies * Player.Level * 15 or eOnGround or Taliyah.E:GetLevel() == 0 or wHitCount > 1) and Player:Distance(enemy.Position) < 420 then
+				if wPred.TargetPosition:Distance(wPred.CastPosition) <= 200 then
+					if Input.Cast(SpellSlots.W,-Player.Direction,wPred.TargetPosition) then return true end
+				end
       end
     end
   end
@@ -302,8 +304,8 @@ function Taliyah.Logic.Combo()
   if MenuValueQ and Taliyah.Q:IsReady() and Player.Mana > qMana then
     for k, enemy in ipairs(Utils.GetTargets(Taliyah.Q)) do
       local qPred = Taliyah.Q:GetPrediction(enemy)
-      if qFive or not Menu.Get("Combo.FullQ") then
-        if qPred ~= nil and qPred.HitChanceEnum >= HitChanceEnum.High and Utils.IsValidTarget(enemy) then
+      if fullQ or not Menu.Get("Combo.FullQ") then
+        if qPred ~= nil and qPred.HitChanceEnum >= HitChanceEnum.Medium and Utils.IsValidTarget(enemy) then
           if Taliyah.Q:Cast(qPred.CastPosition) then return true end
         end
       end
@@ -318,7 +320,7 @@ function Taliyah.Logic.Harass()
   if MenuValueQ and Taliyah.Q:IsReady() and Player.Mana > qMana then
     for k, enemy in ipairs(Utils.GetTargets(Taliyah.Q)) do
       local qPred = Taliyah.Q:GetPrediction(enemy)
-      if qFive or not Menu.Get("Harass.FullQ") then
+      if fullQ or not Menu.Get("Harass.FullQ") then
         if qPred ~= nil and qPred.HitChanceEnum >= HitChanceEnum.High and Utils.IsValidTarget(enemy) then
           if Taliyah.Q:Cast(qPred.CastPosition) then return true end
         end
@@ -369,7 +371,7 @@ function Taliyah.Logic.Waveclear()
         if hpPred > 20 then
           if minion.Health < Taliyah.Q:GetDamage(minion) then
             if Taliyah.Q:Cast(qPred.CastPosition) then return true end
-          elseif (minion.Health/minion.MaxHealth)*100 > 80 and hpPred > Taliyah.Q:GetDamage(minion) and Menu.Get("WaveClear.Qpush") and qFive and Taliyah.Q:IsReady() then
+          elseif (minion.Health/minion.MaxHealth)*100 > 80 and hpPred > Taliyah.Q:GetDamage(minion) and Menu.Get("WaveClear.Qpush") and fullQ and Taliyah.Q:IsReady() then
             if Taliyah.Q:Cast(qPred.CastPosition) then return true end
           end
         end
@@ -391,7 +393,7 @@ function Taliyah.Logic.Waveclear()
       if ePredPos ~= nil and Menu.Get("JungleClear.E") and hitCountW >= 1 and not Taliyah.W:IsReady() and Taliyah.E:IsReady() and Player.Mana > wMana + eMana + qMana and Taliyah.E:IsInRange(minion) then
         if Taliyah.E:Cast(ePredPos) then return true end
       end
-      if Menu.Get("JungleClear.Q") and Taliyah.Q:IsReady() and Player.Mana > qMana then
+      if Menu.Get("JungleClear.Q") and Taliyah.Q:IsReady() and Player.Mana > qMana and fullQ then
         if Taliyah.Q:Cast(minion.Position) then return true end
       end
     end
@@ -473,10 +475,10 @@ function Taliyah.OnCreateObject(obj)
     end
   end
   if obj ~= nil and obj.IsValid and obj.IsVisible and obj.Name == "Taliyah_Base_E_Mines.troy" then
-    eOnGround = true
+    if table.insert(eOnGround,obj) then return true end
   end
   if obj ~= nil and obj.IsValid and obj.IsVisible and obj.Name == "Taliyah_Base_Q_aoe_bright.troy" then
-    qFive = false
+    if table.insert(qFive,obj) then return true end
   end
   return false
 end
@@ -488,10 +490,10 @@ function Taliyah.OnDeleteObject(obj)
     end
   end
   if obj ~= nil and obj.IsValid and obj.IsVisible and obj.Name == "Taliyah_Base_E_Timeout.troy" then
-    eOnGround = false
+    if table.remove(eOnGround,Utils.tablefind(Qobj,obj)) then return true end
   end
   if obj ~= nil and obj.IsValid and obj.IsVisible and obj.Name == "Taliyah_Base_Q_aoe_bright.troy" then
-    qFive = true
+    if table.remove(qFive,Utils.tablefind(Qobj,obj)) then return true end
   end
   return false
 end
@@ -517,6 +519,27 @@ function Taliyah.OnUpdate()
       Qobj[k]=nil
     end
   end
+	for k,v in pairs(eOnGround) do
+    if not v.IsValid then
+      eOnGround[k]=nil
+    end
+  end
+	for k,v in pairs(qFive) do
+    if not v.IsValid then
+      qFive[k]=nil
+    end
+  end
+	for k, v in pairs(qFive) do 
+		if v:Distance(Player.Position) <= 450 then
+			printf(v:Distance(Player.Position))
+			fullQ = false
+		else
+			fullQ = true
+		end
+	end
+	if next(qFive) == nil then
+		fullQ = true
+	end
   local OrbwalkerLogic = Taliyah.Logic[OrbwalkerMode]
   if OrbwalkerLogic then
     if OrbwalkerLogic() then return true end
