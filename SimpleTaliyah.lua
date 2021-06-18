@@ -282,11 +282,11 @@ function Taliyah.Logic.Combo()
       local wPredPos , wHitCount = Taliyah.W:GetBestCircularCastPos(Utils.GetTargets(Taliyah.W),Taliyah.W.Radius)
       if wPred ~= nil and wPred.HitChanceEnum >= HitChanceEnum.Medium and Utils.IsValidTarget(enemy) and (Taliyah.E:IsReady() or Utils.GetDamage(enemy) > hpPred or Player.Health - incomingDamage < enemies * Player.Level * 15 or eOnGround or Taliyah.E:GetLevel() == 0 or wHitCount > 1 )  and Player:Distance(enemy.Position) > 420 then
         if wPred.TargetPosition:Distance(wPred.CastPosition) <= 200 then
-          if Input.Cast(SpellSlots.W,Player.Position,wPred.CastPosition) then return true end
+          if Input.Cast(SpellSlots.W,Player.Position,wPred.TargetPosition) then return true end
         end
       elseif wPred ~= nil and wPred.HitChanceEnum >= HitChanceEnum.Medium and Utils.IsValidTarget(enemy) and (Taliyah.E:IsReady() or Utils.GetDamage(enemy) > hpPred or Player.Health - incomingDamage < enemies * Player.Level * 15 or eOnGround or Taliyah.E:GetLevel() == 0 or wHitCount > 1) and Player:Distance(enemy.Position) < 420 then
         if wPred.TargetPosition:Distance(wPred.CastPosition) <= 200 then
-          if Input.Cast(SpellSlots.W,-Player.Direction,wPred.CastPosition) then return true end
+          if Input.Cast(SpellSlots.W,-Player.Direction,wPred.TargetPosition) then return true end
         end
       end
     end
@@ -416,8 +416,8 @@ function Taliyah.OnGapclose(source,dash)
     local startPos = paths[#paths].StartPos
     for k, enemy in ipairs(Utils.GetTargetsRange(950)) do
       local ePred = Taliyah.E:GetPrediction(enemy)
-      if Player:Distance(endPos) <= 400  and ePred.HitChanceEnum >= HitChanceEnum.VeryHigh then
-        if Taliyah.E:Cast(ePred.CastPosition) then return true end
+      if Player:Distance(endPos) <= 450 then
+        if Taliyah.E:Cast(ePred.TargetPosition) then return true end
       end
     end
   end
@@ -454,7 +454,7 @@ end
 function Taliyah.OnCastStop(sender, spell)
   if sender.IsMe and spell.Name == "TaliyahWVC" and Menu.Get("Misc.AutoE") then
     if Taliyah.E:IsReady() and Player.Mana > eMana then
-      for k, enemy in ipairs(Utils.GetTargetsRange(950)) do
+      for k, enemy in ipairs(Utils.GetTargetsRange(1050)) do
         local ePred = Taliyah.E:GetPrediction(enemy)
         if ePred ~= nil and Utils.IsValidTarget(enemy) then
           local ePredTP = ePred.TargetPosition
