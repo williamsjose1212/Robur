@@ -341,7 +341,7 @@ function Karma.LogicQ()
           if Karma.Q:Cast(qPred.CastPosition) then return true end
         end
       end
-      if qPred ~= nil and qPred.HitChanceEnum >= HitChanceEnum.Low and Orbwalker.IsWindingUp() then
+      if qPred ~= nil and qPred.HitChanceEnum >= HitChanceEnum.Low and not Orbwalker.CanAttack() then
         local delay = (Player:Distance(minion.Position)/ Karma.Q.Speed + Karma.Q.Delay)*1000
         local hpPred = HPred.GetHealthPrediction(minion,delay,false)
         local qPredPos , qHitCount = Karma.Q2:GetBestLinearCastPos(minionsQ,120)
