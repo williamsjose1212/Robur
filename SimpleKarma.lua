@@ -349,7 +349,7 @@ function Karma.LogicQ()
           if minion.Health < Karma.Q:GetDamage(minion) then
             if Karma.Q:Cast(qPred.CastPosition) then return true end
           elseif (minion.Health/minion.MaxHealth)*100 > 80 and hpPred > Karma.Q:GetDamage(minion) then
-            if JungleClear and Menu.Get("JungleClear.R") and Player.Mana > qMana and qHitCount > 5 then
+            if Jungleclear and Menu.Get("JungleClear.R") and Player.Mana > qMana and qHitCount > 5 then
               if Karma.R:Cast() then return true end
             end
             if Utils.HasBuff(Player,"KarmaMantra") then
@@ -386,7 +386,7 @@ end
 function Karma.LogicW()
   if (Combo and Menu.Get("Combo.W") and Player.Mana > qMana+wMana) or (Harass and Menu.Get("Harass.W") and Player.Mana > (eMana + qMana + wMana)*4) then
     for k, enemy in ipairs(Utils.GetTargets(Karma.W)) do
-      if not Utils.HasBuff(Player,"KarmaMantra") or ((Player.Health/Player.MaxHealth) * 100 < 20 and  Utils.CountHeroes(Player,800, "Ally") < 2) then
+      if not Utils.HasBuff(Player,"KarmaMantra") or ((Player.Health/Player.MaxHealth) * 100 < 20 and  Utils.CountHeroes(Player,800, "Ally") < 2) and Player:Distance(enemy) < 600 then
         if Karma.W:Cast(enemy) then return true end
       end
     end
@@ -410,7 +410,7 @@ function Karma.LogicE()
         if Karma.E:Cast(ally) then return true end
       end
       for k, enemy in ipairs(ObjectManager.GetNearby("enemy", "heroes")) do
-        if Karma.E:IsInRange(ally) and Menu.Get("1" .. ally.CharName) and ally:Distance(enemy.AsHero.Position) < 400 then
+        if Karma.E:IsInRange(ally) and Menu.Get("1" .. ally.CharName) and ally:Distance(enemy.AsHero.Position) < 400 and enemy.IsVisible then
           if Karma.E:Cast(ally) then return true end
         end
       end
@@ -423,7 +423,7 @@ function Karma.LogicR()
   if (Combo and Menu.Get("Combo.R") and Player.Mana > qMana) or (Harass and Menu.Get("Harass.R") and Player.Mana > (eMana + qMana + wMana)*4) or (Waveclear and Menu.Get("WaveClear.R") and Player.Mana > (eMana + qMana + wMana)*3) then
     for k, enemy in ipairs(Utils.GetTargets(Karma.Q)) do
       local qPred = Karma.Q2:GetPrediction(enemy)
-      if Utils.HasBuff(enemy,"KarmaSpiritBind") or (Karma.Q:IsReady() and qPred ~= nil and qPred.HitChanceEnum >= HitChanceEnum.Low) then
+      if Utils.HasBuff(enemy,"KarmaSpiritBind") or (Karma.Q:IsReady() and qPred ~= nil and qPred.HitChanceEnum >= HitChanceEnum.High) then
         if Karma.R:Cast() then return true end
       end
     end
