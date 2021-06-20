@@ -349,7 +349,7 @@ function Karma.LogicQ()
           if minion.Health < Karma.Q:GetDamage(minion) then
             if Karma.Q:Cast(qPred.CastPosition) then return true end
           elseif (minion.Health/minion.MaxHealth)*100 > 80 and hpPred > Karma.Q:GetDamage(minion) then
-            if Menu.Get("JungleClear.R") and Player.Mana > qMana and qHitCount > 5 then
+            if Menu.Get("WaveClear.R") and Player.Mana > qMana and qHitCount > 5 then
               if Karma.R:Cast() then return true end
             end
             if Utils.HasBuff(Player,"KarmaMantra") then
