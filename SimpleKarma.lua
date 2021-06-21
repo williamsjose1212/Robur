@@ -63,7 +63,7 @@ Karma.Q = SpellLib.Skillshot({
 })
 Karma.Q2 = SpellLib.Skillshot({
   Slot = SpellSlots.Q,
-  Range = 950,
+  Range = 975,
   Delay = 0.25,
   Speed = 1700,
   Radius = 60,
@@ -106,13 +106,6 @@ function Utils.IsGameAvailable()
 end
 
 function Utils.SetMana()
-  if (Player.Health/Player.MaxHealth) * 100 < 20 then
-    qMana = 0
-    wMana = 0
-    eMana = 0
-    rMana = 0
-    return true
-  end
   if Karma.Q:IsReady() then
     qMana = Karma.Q:GetManaCost()
   else
@@ -252,6 +245,22 @@ function Utils.IsFacing(p1,p2)
   return false
 end
 
+function Utils.CanHit(target,spell)
+  if Utils.IsValidTarget(target) then
+    local pred = target:FastPrediction(spell.CastDelay)
+    if pred == nil then return false end
+    if spell.LineWidth > 0 then
+      local powCalc = (spell.LineWidth + hero.BoundingRadius)^2
+      if (pred:LineDistance(spell.StartPos,spell.EndPos,true) <= powCalc) or (target.Position:LineDistance(spell.StartPos,spell.EndPos,true) <= powCalc) then
+        return true
+      end
+    elseif target:Distance(spell.EndPos) < 50 + target.BoundingRadius or pred:Distance(spell.EndPos) < 50 + target.BoundingRadius then
+      return true
+    end
+  end
+  return false
+end
+
 function Utils.HasBuff(target,buffname)
   local TargetAi = target.AsAI
   if TargetAi and TargetAi.IsValid then
@@ -285,16 +294,10 @@ end
 function Karma.OnProcessSpell(sender,spell)
   if sender.IsHero and sender.IsEnemy and Menu.Get("Misc.AutoE") and Player.Mana > eMana and Karma.E:IsReady() then
     for _, v in pairs(ObjectManager.GetNearby("ally","heroes")) do
-      local hero = v.AsHero
-      if Menu.Get("1" .. hero.CharName) and  Karma.E:IsInRange(hero) and Player:Distance(spell.EndPos) <= Karma.E.Range then
-        local pred = hero:FastPrediction(Game.GetLatency()+ spell.CastDelay)
-        if spell.LineWidth > 0 then
-          local powCalc = (spell.LineWidth + hero.BoundingRadius)^2
-          if (Vector(pred):LineDistance(Vector(spell.StartPos),Vector(spell.EndPos),true) <= powCalc) or (Vector(hero.Position):LineDistance(Vector(spell.StartPos),Vector(spell.EndPos),true) <= powCalc) then
-            if Karma.E:Cast(hero) then return true end
-          end
-        elseif hero:Distance(spell.EndPos) < 50 + hero.BoundingRadius or pred:Distance(spell.EndPos) < 50 + hero.BoundingRadius then
-          if Karma.E:Cast(hero) then return true end
+      local ally = v.AsHero
+      if Menu.Get("1" .. ally.CharName) and Karma.E:IsInRange(ally) and Player:Distance(spell.EndPos) <= Karma.E.Range then
+        if  Utils.CanHit(ally,spell) then
+          if Karma.E:Cast(ally) then return true end
         end
       end
       if spell.Target and spell.Target.IsHero and spell.Target.IsAlly and Karma.E:IsInRange(spell.Target.AsHero) and Menu.Get("1" .. spell.Target.AsHero.CharName) then
@@ -349,7 +352,7 @@ function Karma.LogicQ()
           if minion.Health < Karma.Q:GetDamage(minion) then
             if Karma.Q:Cast(qPred.CastPosition) then return true end
           elseif (minion.Health/minion.MaxHealth)*100 > 80 and hpPred > Karma.Q:GetDamage(minion) then
-            if Menu.Get("WaveClear.R") and Player.Mana > qMana and qHitCount > 5 then
+            if Menu.Get("WaveClear.R") and Player.Mana > qMana and qHitCount >= 2 and Karma.R:IsReady() then
               if Karma.R:Cast() then return true end
             end
             if Utils.HasBuff(Player,"KarmaMantra") then
@@ -375,6 +378,9 @@ function Karma.LogicQ()
       for k, minion in pairs(monstersQ) do
         local qPred = Prediction.GetPredictedPosition(minion, Karma.Q, Player.Position)
         if qPred ~= nil and qPred.HitChanceEnum >= HitChanceEnum.Low then
+          if Menu.Get("JungleClear.R") and Player.Mana > qMana  then
+            if Karma.R:Cast() then return true end
+          end
           if Karma.Q:Cast(qPred.CastPosition) then return true end
         end
       end
@@ -405,8 +411,8 @@ function Karma.LogicE()
   if Menu.Get("Misc.AutoE") and Karma.E:IsReady() and Player.Mana > eMana then
     for _, v in ipairs(ObjectManager.GetNearby("ally","heroes")) do
       local ally = v.AsHero
-      local incomingDamage = HPred.GetDamagePrediction(ally,2,false)
-      if Karma.E:IsInRange(ally) and Menu.Get("1" .. ally.CharName) and incomingDamage >= ally.Health * 0.20 then
+      local incomingDamage = HPred.GetDamagePrediction(ally,0.5,false)
+      if Karma.E:IsInRange(ally) and Menu.Get("1" .. ally.CharName) and incomingDamage >= ally.Health * 0.15 then
         if Karma.E:Cast(ally) then return true end
       end
       for k, enemy in ipairs(ObjectManager.GetNearby("enemy", "heroes")) do
@@ -423,7 +429,7 @@ function Karma.LogicR()
   if (Combo and Menu.Get("Combo.R") and Player.Mana > qMana) or (Harass and Menu.Get("Harass.R") and Player.Mana > (eMana + qMana + wMana)*4) or (Waveclear and Menu.Get("WaveClear.R") and Player.Mana > (eMana + qMana + wMana)*3) then
     for k, enemy in ipairs(Utils.GetTargets(Karma.Q)) do
       local qPred = Karma.Q2:GetPrediction(enemy)
-      if Utils.HasBuff(enemy,"KarmaSpiritBind") or (Karma.Q:IsReady() and qPred ~= nil and qPred.HitChanceEnum >= HitChanceEnum.High) then
+      if Utils.HasBuff(enemy,"KarmaSpiritBind") or (Karma.Q:IsReady() and qPred ~= nil and qPred.HitChanceEnum >= HitChanceEnum.Medium) then
         if Karma.R:Cast() then return true end
       end
     end
