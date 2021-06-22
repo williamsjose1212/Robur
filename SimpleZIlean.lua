@@ -1,11 +1,11 @@
 if Player.CharName ~= "Zilean" then return end
 
 module("Simple Zilean", package.seeall, log.setup)
-clean.module("Simple Zlean", clean.seeall, log.setup)
-
+clean.module("Simple Zilean", clean.seeall, log.setup)
 local CoreEx = _G.CoreEx
 local Libs = _G.Libs
-
+local ScriptName, Version = "SimpleZilean", "1.0.0"
+--CoreEx.AutoUpdate("https://github.com/SamuelLachance/Robur/" .. ScriptName ..".lua", Version)
 local Menu = Libs.NewMenu
 local Prediction = Libs.Prediction
 local Orbwalker = Libs.Orbwalker
@@ -14,9 +14,19 @@ local DamageLib = Libs.DamageLib
 local ImmobileLib = Libs.ImmobileLib
 local SpellLib = Libs.Spell
 local TargetSelector = Libs.TargetSelector
-local HPred = Libs.HealthPred
 local TS = Libs.TargetSelector()
-local Profiler = Libs.Profiler
+local HPred = Libs.HealthPred
+local DashLib = Libs.DashLib
+local os_clock = _G.os.clock
+local math_abs = _G.math.abs
+local math_huge = _G.math.huge
+local math_min = _G.math.min
+local math_deg = _G.math.deg
+local math_sin = _G.math.sin
+local math_cos = _G.math.cos
+local math_acos = _G.math.acos
+local math_pi = _G.math.pi
+local math_pi2 = 0.01745329251
 local ObjectManager = CoreEx.ObjectManager
 local EventManager = CoreEx.EventManager
 local Input = CoreEx.Input
@@ -24,24 +34,32 @@ local Enums = CoreEx.Enums
 local Game = CoreEx.Game
 local Geometry = CoreEx.Geometry
 local Renderer = CoreEx.Renderer
-
+local Vector = CoreEx.Geometry.Vector
 local SpellSlots = Enums.SpellSlots
 local SpellStates = Enums.SpellStates
 local BuffTypes = Enums.BuffTypes
 local Events = Enums.Events
 local HitChanceEnum = Enums.HitChance
 local Nav = CoreEx.Nav
-local Zilean = {}
-local loaded = false
 
+local next = next
+local Zilean = {}
+local qMana = 0
+local wMana = 0
+local eMana = 0
+local rMana = 0
+local iTick = 0
+local Combo,Harass,Waveclear = false,false,false
+local incomingDamage = {}
+local Qobj = {}
 Zilean.Q = SpellLib.Skillshot({
   Slot = Enums.SpellSlots.Q,
-  Range = 920,
+  Range = 900,
   Speed = 2000,
   Radius = 100,
   Type = "Circular",
   Collisions = {WindWall = true},
-  Delay = 0.250,
+  Delay = 0.25,
   Key = "Q"
 })
 
@@ -54,7 +72,6 @@ Zilean.E = SpellLib.Targeted({
   Slot = Enums.SpellSlots.E,
   Range = 550,
   Key = "E",
-  LastE = os.clock()
 })
 
 Zilean.R = SpellLib.Targeted({
@@ -67,6 +84,7 @@ Zilean.TargetSelector = nil
 Zilean.Logic = {}
 
 local Utils = {}
+local IsInTurret = false
 
 function Utils.IsGameAvailable()
   return not (
@@ -76,12 +94,144 @@ function Utils.IsGameAvailable()
   )
 end
 
+function Utils.SetMana()
+  if Zilean.Q:IsReady() then
+    qMana = Zilean.Q:GetManaCost()
+  else
+    qMana = 0
+  end
+  if Zilean.W:IsReady() then
+    wMana = Zilean.W:GetManaCost()
+  else
+    wMana = 0
+  end
+  if Zilean.E:IsReady() then
+    eMana = Zilean.E:GetManaCost()
+  else
+    eMana = 0
+  end
+  if Zilean.R:IsReady() then
+    rMana = Zilean.R:GetManaCost()
+  else
+    rMana = 0
+  end
+  return false
+end
+
 function Utils.GetTargets(Spell)
   return TS:GetTargets(Spell.Range,true)
 end
 
+function Utils.GetTargetsRange(Range)
+  return TS:GetTargets(Range,false)
+end
+
+function Utils.ValidUlt(target)
+  local TargetAi = target.AsAI
+  if TargetAi and TargetAi.IsValid then
+    local KindredUlt = TargetAi:GetBuff("kindredrnodeathbuff")
+    local TryndUlt = TargetAi:GetBuff("undyingrage") --idk if  HasUndyingBuff() do the same thing
+    local KayleUlt = TargetAi:GetBuff("judicatorintervention") -- still this name ?
+    local ZileanUlt = TargetAi:GetBuff("chronoshift")
+
+    if KindredUlt or TryndUlt or KayleUlt or ZileanUlt  or TargetAi.IsZombie or TargetAi.IsDead then
+      return false
+    end
+  end
+  return true
+end
+
+function Utils.HasBuffType(unit,buffType)
+  local ai = unit.AsAI
+  if ai.IsValid then
+    for i = 0, ai.BuffCount do
+      local buff = ai:GetBuff(i)
+      if buff and buff.IsValid and buff.BuffType == buffType then
+        return true
+      end
+    end
+  end
+  return false
+end
+
+function Utils.Count(spell)
+  local num = 0
+  for k, v in ipairs(ObjectManager.GetNearby("enemy", "heroes")) do
+    local hero = v.AsHero
+    if hero and hero.IsTargetable and hero:Distance(Player.Position) < spell.Range then
+      num = num + 1
+    end
+  end
+  return num
+end
+
+function Utils.hasValue(tab,val)
+  for index, value in ipairs(tab) do
+    if value == val then
+      return true
+    end
+  end
+  return false
+end
+
+function Utils.tablefind(tab,el)
+  for index, value in pairs(tab) do
+    if value == el then
+      return index
+    end
+  end
+end
+
+function Utils.CountMinionsInRange(range, type)
+  local amount = 0
+  for k, v in ipairs(ObjectManager.GetNearby(type, "minions")) do
+    local minion = v.AsMinion
+    if not minion.IsJunglePlant and minion.IsValid and not minion.IsDead and minion.IsTargetable and
+    Player:Distance(minion) < range then
+      amount = amount + 1
+    end
+  end
+  return amount
+end
+
+function Utils.CountEnemiesInRange(pos, range, t)
+  local res = 0
+  for k, v in ipairs(t or ObjectManager.Get("enemy", "heroes")) do
+    local hero = v.AsHero
+    if hero and hero.IsTargetable and hero:Distance(pos) < range then
+      res = res + 1
+    end
+  end
+  return res
+end
+
+function Utils.CountHeroes(pos,Range,type)
+  local num = 0
+  for k, v in ipairs(ObjectManager.Get(type, "heroes")) do
+    local hero = v.AsHero
+    if hero and hero.IsTargetable and hero:Distance(pos.Position) < Range then
+      num = num + 1
+    end
+  end
+  return num
+end
+
 function Utils.IsValidTarget(Target)
   return Target and Target.IsTargetable and Target.IsAlive
+end
+
+function Utils.GetAngle(v1, v2)
+  return math_deg(math_acos(v1 * v2 / (v1:Len() * v2:Len())))
+end
+
+function Utils.IsFacing(p1,p2)
+  local v = p1.Position - p2.Position
+  local dir = p1.AsAI.Direction
+  local angle = 180 - Utils.GetAngle(v, dir)
+  if math_abs(angle) < 80 then
+    return true
+  end
+  return false
 end
 
 function Utils.HasQZileanBuff(target)
@@ -96,374 +246,247 @@ function Utils.HasQZileanBuff(target)
   return false
 end
 
-function Utils.CountHeroes(pos,Range,type)
-  local num = 0
-  for k, v in pairs(ObjectManager.GetNearby(type, "heroes")) do
-    local hero = v.AsHero
-    if hero and hero.IsTargetable and hero:Distance(pos.Position) < Range then
-      num = num + 1
-    end
-  end
-  return num
-end
-
-
-function Utils.ValidUlt(target)
+function Utils.HasBuff(target,buffname)
   local TargetAi = target.AsAI
   if TargetAi and TargetAi.IsValid then
-    local KindredUlt = TargetAi:GetBuff("kindredrnodeathbuff")
-    local TryndUlt = TargetAi:GetBuff("undyingrage") --idk if  HasUndyingBuff() do the same thing
-    local KayleUlt = TargetAi:GetBuff("judicatorintervention") -- still this name ?
-    local ZileanUlt = TargetAi:GetBuff("chronoshift") -- in case you are 2 zilean in the same team in some game mode
-
-    if KindredUlt or TryndUlt or KayleUlt or ZileanUlt  or TargetAi.IsZombie or TargetAi.IsDead then
-      return false
-    end
-  end
-  return true
-end
-
-function Zilean.Logic.Combo()
-  local MenuValueQ = Menu.Get("Combo.Q")
-  local MenuValueQW = Menu.Get("Combo.W")
-  local MenuValueE = Menu.Get("Combo.E")
-  local _W = Zilean.W:GetSpellData()
-  for k, v in pairs(Utils.GetTargets(Zilean.Q)) do
-    for _, hero in pairs(ObjectManager.GetNearby("enemy", "heroes")) do
-      local Enemy = hero.AsAI
-      local predQ = Zilean.Q:GetPrediction(v)
-      if predQ ~= nil and Utils.IsValidTarget(v) then
-        predHp = HPred.GetHealthPrediction(v,3,true)
-        if Zilean.Q:GetManaCost() + Zilean.W:GetManaCost() <= Player.Mana then
-          if Zilean.Q:IsReady() and ( Zilean.W:IsReady() or _W.RemainingCooldown < 2.750 )  then
-            if Zilean.E:IsInRange(v) and Zilean.E:IsReady() and (Zilean.Q:GetManaCost() + Zilean.E:GetManaCost()) <= Player.Mana and MenuValueE then
-              if Zilean.E:Cast(v) then return true end
-            end
-            if MenuValueQ and predQ.HitChanceEnum >= HitChanceEnum.High then
-              if Zilean.Q:Cast(predQ.CastPosition) then return true end
-            end
-          elseif  Zilean.Q:IsReady() and not Zilean.W:IsReady() and Utils.HasQZileanBuff(Enemy) and Zilean.Q:IsInRange(Enemy) then
-            if Zilean.E:IsInRange(Enemy) and Zilean.E:IsReady() and (Zilean.Q:GetManaCost() + Zilean.E:GetManaCost()) <= Player.Mana and MenuValueE then
-              if Zilean.E:Cast(Enemy) then return true end
-            end
-            local predQ2 = Zilean.Q:GetPrediction(Enemy)
-            if MenuValueQ and predQ2 ~= nil then
-              if predQ2.HitChanceEnum >= HitChanceEnum.High  then
-                if Zilean.Q:Cast(predQ2.CastPosition) then return true end
-              end
-            end
-          elseif MenuValueQW and not Zilean.Q:IsReady() and Zilean.W:IsReady() and Utils.HasQZileanBuff(Enemy) then
-            if Zilean.W:Cast() then return true end
-          end
-        end
-        if Zilean.Q:IsReady() and Zilean.W:GetLevel() == 0 and predQ.HitChanceEnum >= HitChanceEnum.High then
-          if Zilean.E:IsInRange(v) and Zilean.E:IsReady() and (Zilean.Q:GetManaCost() + Zilean.E:GetManaCost()) <= Player.Mana and MenuValueE then
-            if Zilean.E:Cast(v) then return true end
-          end
-          if MenuValueQ then
-            if Zilean.Q:Cast(predQ.CastPosition) then return true end
-          end
-        elseif predQ.HitChanceEnum >= HitChanceEnum.High and predHp <= (Zilean.Q:GetDamage(Enemy) * 3) and Zilean.Q:IsInRange(Enemy) then
-          if Zilean.E:IsInRange(Enemy) and Zilean.E:IsReady() and (Zilean.Q:GetManaCost() + Zilean.E:GetManaCost()) <= Player.Mana and MenuValueE then
-            if Zilean.E:Cast(Enemy) then return true end
-          end
-          local predQ2 = Zilean.Q:GetPrediction(Enemy)
-          if  MenuValueQ and predQ2 ~= nil and Zilean.Q:IsReady() then
-            if Zilean.Q:Cast(predQ2.CastPosition) then return true end
-          end
-        elseif not Zilean.Q:IsReady() and Zilean.W:IsReady() and predHp <= (Zilean.Q:GetDamage(Enemy) * 3) and Zilean.Q:IsInRange(Enemy) and MenuValueQW then
-          if Zilean.W:Cast() then return true end
-        end
-        if not Zilean.Q:IsReady() and MenuValueE and Utils.HasQZileanBuff(Enemy) and Zilean.E:IsReady() and (Zilean.Q:GetManaCost() + Zilean.E:GetManaCost()) <= Player.Mana and Zilean.E:IsInRange(Enemy) then
-          if Zilean.E:Cast(Enemy) then return true end
-        end
-      end
-      for x, minions in pairs(ObjectManager.GetNearby("enemy", "minions")) do
-        local minion = minions.AsAI
-        local predMinion = Zilean.Q:GetPrediction(minion)
-        if predMinion ~= nil and Enemy:Distance(minion) <= 300 and Utils.HasQZileanBuff(minion) and MenuValueQ and Zilean.Q:IsReady() then
-          if Zilean.Q:Cast(predMinion.CastPosition) then return true end
-        elseif Utils.HasQZileanBuff(minion) and MenuValueQW and not Zilean.Q:IsReady() and Zilean.W:IsReady() then
-          if Zilean.W:Cast() then return true end
-        end
-      end
-      for x, minions in pairs(ObjectManager.GetNearby("ally", "minions")) do
-        local minion = minions.AsAI
-        local predMinion = Zilean.Q:GetPrediction(minion)
-        if predMinion ~= nil and Enemy:Distance(minion) <= 300 and Utils.HasQZileanBuff(minion) and MenuValueQ and Zilean.Q:IsReady() then
-          if Zilean.Q:Cast(predMinion.CastPosition) then return true end
-        elseif Utils.HasQZileanBuff(minion) and MenuValueQW and not Zilean.Q:IsReady() and Zilean.W:IsReady() then
-          if Zilean.W:Cast() then return true end
-        end
-      end
-      for x, allies in pairs(ObjectManager.GetNearby("ally", "heroes")) do
-        local ally = allies.AsAI
-        local predAlly = Zilean.Q:GetPrediction(ally)
-        if predAlly ~= nil and Enemy:Distance(ally) <= 300 and Utils.HasQZileanBuff(ally) and MenuValueQ and Zilean.Q:IsReady() then
-          if Zilean.Q:Cast(predAlly.CastPosition) then return true end
-        elseif Utils.HasQZileanBuff(ally) and MenuValueQW and not Zilean.Q:IsReady() and Zilean.W:IsReady() then
-          if Zilean.W:Cast() then return true end
-        end
-      end
+    local hBuff= TargetAi:GetBuff(buffname)
+    if hBuff then
+      return true
     end
   end
   return false
 end
 
-function Zilean.Logic.Harass()
-  if Menu.Get("ManaSlider") >= Player.ManaPercent * 100 then return false end
-  local MenuValueQ = Menu.Get("Harass.Q")
-  local MenuValueQW = Menu.Get("Harass.W")
-  local MenuValueE = Menu.Get("Harass.E")
-  local _W = Zilean.W:GetSpellData()
-  for k, v in pairs(Utils.GetTargets(Zilean.Q)) do
-    for _, hero in pairs(ObjectManager.GetNearby("enemy", "heroes")) do
-      local Enemy = hero.AsAI
-      local predQ = Zilean.Q:GetPrediction(v)
-      if predQ ~= nil and Utils.IsValidTarget(v) then
-        predHp = HPred.GetHealthPrediction(v,3,true)
-        if Zilean.Q:GetManaCost() + Zilean.W:GetManaCost() <= Player.Mana then
-          if Zilean.Q:IsReady() and ( Zilean.W:IsReady() or _W.RemainingCooldown < 2.750 )  then
-            if Zilean.E:IsInRange(v) and Zilean.E:IsReady() and (Zilean.Q:GetManaCost() + Zilean.E:GetManaCost()) <= Player.Mana and MenuValueE then
-              if Zilean.E:Cast(v) then return true end
-            end
-            if MenuValueQ and predQ.HitChanceEnum >= HitChanceEnum.VeryHigh  then
-              if Zilean.Q:Cast(predQ.CastPosition) then return true end
-            end
-          elseif  Zilean.Q:IsReady() and not Zilean.W:IsReady() and Utils.HasQZileanBuff(Enemy) and Zilean.Q:IsInRange(Enemy) then
-            if Zilean.E:IsInRange(Enemy) and Zilean.E:IsReady() and (Zilean.Q:GetManaCost() + Zilean.E:GetManaCost()) <= Player.Mana and MenuValueE then
-              if Zilean.E:Cast(Enemy) then return true end
-            end
-            local predQ2 = Zilean.Q:GetPrediction(Enemy)
-            if MenuValueQ and predQ2 ~= nil then
-              if predQ2.HitChanceEnum >= HitChanceEnum.VeryHigh  then
-                if Zilean.Q:Cast(predQ2.CastPosition) then return true end
-              end
-            end
-          elseif MenuValueQW and not Zilean.Q:IsReady() and Zilean.W:IsReady() and Utils.HasQZileanBuff(Enemy) then
-            if Zilean.W:Cast() then return true end
-          end
-        end
-        if Zilean.Q:IsReady() and Zilean.W:GetLevel() == 0 and predQ.HitChanceEnum >= HitChanceEnum.VeryHigh then
-          if Zilean.E:IsInRange(v) and Zilean.E:IsReady() and (Zilean.Q:GetManaCost() + Zilean.E:GetManaCost()) <= Player.Mana and MenuValueE then
-            if Zilean.E:Cast(v) then return true end
-          end
-          if MenuValueQ then
-            if Zilean.Q:Cast(predQ.CastPosition) then return true end
-          end
-        elseif predQ.HitChanceEnum >= HitChanceEnum.VeryHigh and predHp <= (Zilean.Q:GetDamage(Enemy) * 3) and Zilean.Q:IsInRange(Enemy) then
-          if Zilean.E:IsInRange(Enemy) and Zilean.E:IsReady() and (Zilean.Q:GetManaCost() + Zilean.E:GetManaCost()) <= Player.Mana and MenuValueE then
-            if Zilean.E:Cast(Enemy) then return true end
-          end
-          local predQ2 = Zilean.Q:GetPrediction(Enemy)
-          if  MenuValueQ and predQ2 ~= nil and Zilean.Q:IsReady() then
-            if Zilean.Q:Cast(predQ2.CastPosition) then return true end
-          end
-        elseif not Zilean.Q:IsReady() and Zilean.W:IsReady() and predHp <= (Zilean.Q:GetDamage(Enemy) * 3) and Zilean.Q:IsInRange(Enemy) and MenuValueQW then
-          if Zilean.W:Cast() then return true end
-        end
-        if not Zilean.Q:IsReady() and MenuValueE and Utils.HasQZileanBuff(Enemy) and Zilean.E:IsReady() and (Zilean.Q:GetManaCost() + Zilean.E:GetManaCost()) <= Player.Mana and Zilean.E:IsInRange(Enemy) then
-          if Zilean.E:Cast(Enemy) then return true end
-        end
+function Utils.CanHit(target,spell)
+  if Utils.IsValidTarget(target) then
+    local pred = target:FastPrediction(spell.CastDelay)
+    if pred == nil then return false end
+    if spell.LineWidth > 0 then
+      local powCalc = (spell.LineWidth + hero.BoundingRadius)^2
+      if (pred:LineDistance(spell.StartPos,spell.EndPos,true) <= powCalc) or (target.Position:LineDistance(spell.StartPos,spell.EndPos,true) <= powCalc) then
+        return true
       end
-      for x, minions in pairs(ObjectManager.GetNearby("enemy", "minions")) do
-        local minion = minions.AsAI
-        local predMinion = Zilean.Q:GetPrediction(minion)
-        if predMinion ~= nil and Enemy:Distance(minion) <= 300 and Utils.HasQZileanBuff(minion) and MenuValueQ and Zilean.Q:IsReady() then
-          if Zilean.Q:Cast(predMinion.CastPosition) then return true end
-        elseif Utils.HasQZileanBuff(minion) and MenuValueQW and not Zilean.Q:IsReady() and Zilean.W:IsReady() then
-          if Zilean.W:Cast() then return true end
-        end
-      end
-      for x, minions in pairs(ObjectManager.GetNearby("ally", "minions")) do
-        local minion = minions.AsAI
-        local predMinion = Zilean.Q:GetPrediction(minion)
-        if predMinion ~= nil and Enemy:Distance(minion) <= 300 and Utils.HasQZileanBuff(minion) and MenuValueQ and Zilean.Q:IsReady() then
-          if Zilean.Q:Cast(predMinion.CastPosition) then return true end
-        elseif Utils.HasQZileanBuff(minion) and MenuValueQW and not Zilean.Q:IsReady() and Zilean.W:IsReady() then
-          if Zilean.W:Cast() then return true end
-        end
-      end
-      for x, allies in pairs(ObjectManager.GetNearby("ally", "heroes")) do
-        local ally = allies.AsAI
-        local predAlly = Zilean.Q:GetPrediction(ally)
-        if predAlly ~= nil and Enemy:Distance(ally) <= 300 and Utils.HasQZileanBuff(ally) and MenuValueQ and Zilean.Q:IsReady() then
-          if Zilean.Q:Cast(predAlly.CastPosition) then return true end
-        elseif Utils.HasQZileanBuff(ally) and MenuValueQW and not Zilean.Q:IsReady() and Zilean.W:IsReady() then
-          if Zilean.W:Cast() then return true end
-        end
-      end
+    elseif target:Distance(spell.EndPos) < 50 + target.BoundingRadius or pred:Distance(spell.EndPos) < 50 + target.BoundingRadius then
+      return true
     end
   end
   return false
 end
 
-function Zilean.Logic.Waveclear()
-  if Menu.Get("ManaSliderLane") >= Player.ManaPercent * 100 then return false end
-  local MenuValueQ = Menu.Get("WaveClear.Q")
-  local MenuValueQW = Menu.Get("WaveClear.W")
-  local Cannons = {}
-  local otherMinions = {}
-  local JungleMinions = {}
-  for k, v in pairs(ObjectManager.GetNearby("enemy", "minions")) do
-    local minion = v.AsMinion
-    local pos = minion:FastPrediction(Game.GetLatency()+ Zilean.Q.Delay)
-    if Zilean.Q:IsInRange(minion) and minion.IsTargetable and (minion.IsSiegeMinion or minion.IsSuperMinion) then
-      table.insert(Cannons, pos)
-    elseif Zilean.Q:IsInRange(minion) and minion.IsTargetable and minion.IsLaneMinion then
-      table.insert(otherMinions, pos)
-    end
+function Utils.NoLag(tick)
+  if (iTick == tick) then
+    return true
+  else
+    return false
   end
-  for k, v in pairs(ObjectManager.GetNearby("neutral", "minions")) do
-    local minion = v.AsMinion
-    local pos = minion:FastPrediction(Game.GetLatency()+ Zilean.Q.Delay)
-    if Zilean.Q:IsInRange(minion) and minion.IsTargetable and not minion.IsJunglePlant then
-      table.insert(JungleMinions, pos)
-    end
-  end
-  if (Zilean.Q:IsReady() and Zilean.W:IsReady()) or (Zilean.Q:IsReady() and Zilean.W:GetLevel() == 0) and MenuValueQ then
-    local cannonsPos, hitCount1 = Zilean.Q:GetBestCircularCastPos(Cannons, Zilean.Q.Radius)
-    local laneMinionsPos, hitCount2 = Zilean.Q:GetBestCircularCastPos(otherMinions, 300)
-    local JungleMinionPos, hitCount3 = Zilean.Q:GetBestCircularCastPos(JungleMinions, 300)
-    if cannonsPos ~= nil and laneMinionsPos ~= nil then
-      if hitCount1 >= 1 and hitCount2 >= 1 then
-        if Zilean.Q:Cast(cannonsPos) then return true end
-      end
-    end
-    if laneMinionsPos ~= nil then
-      if hitCount2 >= 3 then
-        if Zilean.Q:Cast(laneMinionsPos) then return true end
-      end
-    end
-    if JungleMinionPos ~= nil then
-      if hitCount3 >= 1 then
-        if Zilean.Q:Cast(JungleMinionPos) then return true end
-      end
-    end
-  end
-  for k, v in pairs(ObjectManager.GetNearby("enemy", "minions")) do
-    local minion = v.AsAI
-    local predMinion = Zilean.Q:GetPrediction(minion)
-    if predMinion ~= nil and Utils.HasQZileanBuff(minion) and Zilean.Q:IsReady() and MenuValueQ then
-      if Zilean.Q:Cast(predMinion.CastPosition) then return true end
-    elseif Utils.HasQZileanBuff(minion) and MenuValueQW and not Zilean.Q:IsReady() and Zilean.W:IsReady() then
-      if Zilean.W:Cast() then return true end
-    end
-  end
-  for k, v in pairs(ObjectManager.GetNearby("neutral", "minions")) do
-    local minion = v.AsAI
-    local predMinion = Zilean.Q:GetPrediction(minion)
-    if predMinion ~= nil and Utils.HasQZileanBuff(minion) and Zilean.Q:IsReady() and MenuValueQ then
-      if Zilean.Q:Cast(predMinion.CastPosition) then return true end
-    elseif Utils.HasQZileanBuff(minion) and MenuValueQW and not Zilean.Q:IsReady() and Zilean.W:IsReady() then
-      if Zilean.W:Cast() then return true end
-    end
-  end
-  return false
-end
-
-function Zilean.Logic.Auto()
-  if Menu.Get("Misc.AutoCC") then
-    for k,v in pairs(Utils.GetTargets(Zilean.Q)) do
-      if not v.CanMove and Zilean.Q:IsReady() then
-        if Zilean.Q:CastOnHitChance(v,Enums.HitChance.Immobile) then return true end
-      end
-    end
-  end
-  if Zilean.R:IsReady() and Menu.Get("Auto.R") then
-    for _, v in pairs(ObjectManager.GetNearby("ally","heroes")) do
-      local hero = v.AsHero
-      local delay =  0.10 + Game.GetLatency()/1000
-      local incomingDamage = HPred.GetDamagePrediction(hero,delay,true)
-      if Zilean.R:IsInRange(hero) and Menu.Get("1" .. hero.CharName) and hero.Health - incomingDamage < hero.Level * 10 and Utils.ValidUlt(hero) then
-        if Zilean.R:Cast(hero) then return true end
-      end
-    end
-  end
-  return false
-end
-
-function Zilean.OnProcessSpell(sender,spell)
-  if (sender.IsHero and sender.IsEnemy and Zilean.R:IsReady()) then
-    local spellTarget = spell.Target
-    if Menu.Get("Auto.R") then
-      if spellTarget and spellTarget.IsAlly and spellTarget.IsHero and Zilean.R:IsInRange(spellTarget) and Menu.Get("1" .. spellTarget.AsHero.CharName) and Utils.ValidUlt(spellTarget) then
-        if spell.Name == "VeigarR" and (spellTarget.Health/spellTarget.MaxHealth)*100 <= 40 then
-          if Zilean.R:Cast(spellTarget) then return true end
-        end
-        if spell.Name == "GarenR" and (spellTarget.Health/spellTarget.MaxHealth)*100 <= 40 then
-          if Zilean.R:Cast(spellTarget) then return true end
-        end
-        if spell.Name == "TristanaR" and (spellTarget.Health/spellTarget.MaxHealth)*100 <= 35 then
-          if Zilean.R:Cast(spellTarget) then return true end
-        end
-        if spell.Name == "ZedR" and (spellTarget.Health/spellTarget.MaxHealth)*100 <= 40 then
-          if Zilean.R:Cast(spellTarget) then return true end
-        end
-        if spell.Name == "ChogathR" and (spellTarget.Health/spellTarget.MaxHealth)*100 <= 40 then
-          if Zilean.R:Cast(spellTarget) then return true end
-        end
-        if spell.Name == "SyndraR" and (spellTarget.Health/spellTarget.MaxHealth)*100 <= 35 then
-          if Zilean.R:Cast(spellTarget) then return true end
-        end
-        if spell.Name == "LeesinR" and (spellTarget.Health/spellTarget.MaxHealth)*100 <= 30 then
-          if Zilean.R:Cast(spellTarget) then return true end
-        end
-        if spell.Name == "DariusR" and (spellTarget.Health/spellTarget.MaxHealth)*100 <= 45 then
-          if Zilean.R:Cast(spellTarget) then return true end
-        end
-        if spell.Name == "ViR" and (spellTarget.Health/spellTarget.MaxHealth)*100 <= 40 then
-          if Zilean.R:Cast(spellTarget) then return true end
-        end
-        if spell.Name == "LissandraR" and (spellTarget.Health/spellTarget.MaxHealth)*100 <= 35 then
-          if Zilean.R:Cast(spellTarget) then return true end
-        end
-      end
-    end
-  end
-  return false
-end
-
-function Zilean.OnDraw()
-  if Player.IsVisible and Player.IsOnScreen and not Player.IsDead then
-    local Pos = Player.Position
-    local spells = {Zilean.Q,Zilean.E,Zilean.R}
-    for k, v in pairs(spells) do
-      if Menu.Get("Drawing."..v.Key..".Enabled", true) and v:IsReady() then
-        Renderer.DrawCircle3D(Pos, v.Range, 30, 3, Menu.Get("Drawing."..v.Key..".Color"))
-      end
-    end
-  end
-end
-
-function Zilean.OnInterruptibleSpell(source, spell, danger, endT, canMove)
-  if source.IsEnemy and Menu.Get("Misc.QI") and Zilean.Q:IsReady() and danger > 2 and Player:Distance(source.Position) <= 900 then
-    if Zilean.Q:CastOnHitChance(source,Enums.HitChance.VeryHigh)then return true end
-  end
-  return false
 end
 
 function Zilean.OnGapclose(source,dash)
-  if source.IsEnemy then
-    if Menu.Get("Misc.E") and Zilean.E:IsReady() and Player:Distance(source.Position) <= 550 then
+  if source.IsEnemy and source.IsHero  and not dash.IsBlink then
+    local paths = dash:GetPaths()
+    local endPos = paths[#paths].EndPos
+    if Player:Distance(endPos) <= 600 and Menu.Get("Misc.GapcloseE") and Zilean.E:IsReady()  then
       if Zilean.E:Cast(source) then return true end
     end
   end
   return false
 end
 
+function Zilean.LogicQ()
+  if (Combo and Menu.Get("Combo.Q") and Player.Mana > qMana) or (Harass and Menu.Get("Harass.Q") and Player.Mana > (eMana + qMana + wMana)*4) then
+    for k, enemy in ipairs(Utils.GetTargets(Zilean.Q)) do
+      local qPred = Zilean.Q:GetPrediction(enemy)
+      if qPred ~= nil and qPred.HitChanceEnum >= HitChanceEnum.Low and qPred.TargetPosition:Distance(qPred.CastPosition) <= 100 then
+        if Zilean.Q:Cast(qPred.CastPosition) then return true end
+      end
+    end
+  end
+  if Waveclear and Menu.Get("WaveClear.Q") and Player.Mana > (eMana + qMana + wMana)*3 then
+    local minionsQ = {}
+    local monstersQ = {}
+    for k, v in pairs(ObjectManager.GetNearby("enemy", "minions")) do
+      local minion = v.AsAI
+      local minionInRange = minion and minion.MaxHealth > 6 and Zilean.Q:IsInRange(minion)
+      local shouldIgnoreMinion = minion and (Orbwalker.IsLasthitMinion(minion) or Orbwalker.IsIgnoringMinion(minion))
+      if minionInRange and not shouldIgnoreMinion and minion.IsTargetable  and Utils.IsValidTarget(minion) then
+        table.insert(minionsQ, minion)
+        table.sort(minionsQ, function(a, b) return a.MaxHealth < b.MaxHealth end)
+      end
+    end
+    for k, v in pairs(ObjectManager.GetNearby("neutral", "minions")) do
+      local minion = v.AsAI
+      local minionInRange = minion and minion.MaxHealth > 6 and Zilean.Q:IsInRange(minion)
+      local shouldIgnoreMinion = minion and (Orbwalker.IsLasthitMinion(minion) or Orbwalker.IsIgnoringMinion(minion))
+      if minionInRange and not shouldIgnoreMinion and minion.IsTargetable  and Utils.IsValidTarget(minion) then
+        table.insert(monstersQ, minion)
+        table.sort(monstersQ, function(a, b) return a.MaxHealth < b.MaxHealth end)
+      end
+    end
+    local qPos1, hitCount1 = Zilean.Q:GetBestCircularCastPos(minionsQ, 300)
+    local qPos2, hitCount2 = Zilean.Q:GetBestCircularCastPos(monstersQ, 300)
+    if qPos1 ~= nil and hitCount1 >= 3 then
+      if Zilean.Q:Cast(qPos1) then return true end
+    end
+    if qPos2 ~= nil and hitCount2 >= 1 then
+      if Zilean.Q:Cast(qPos2) then return true end
+    end
+  end
+  return false
+end
+
+function Zilean.LogicW()
+  if not Zilean.Q:IsReady() and (Combo and Menu.Get("Combo.Q") and Player.Mana > qMana) or (Harass and Menu.Get("Harass.Q") and Player.Mana > (eMana + qMana + wMana)*4) then
+    for k, hero in ipairs(ObjectManager.GetNearby("all", "heroes")) do
+      if Utils.HasQZileanBuff(hero) then
+        if Zilean.W:Cast() then return true end
+      end
+    end
+    for k,v in ipairs(ObjectManager.GetNearby("all", "minions")) do
+      if Utils.HasQZileanBuff(v) then
+        if Zilean.W:Cast() then return true end
+      end
+    end
+  end
+  if not Zilean.Q:IsReady() and Waveclear and Menu.Get("WaveClear.W") and Player.Mana > (eMana + qMana + wMana)*3 then
+    for k, enemy in ipairs(ObjectManager.GetNearby("enemy", "minions")) do
+      if Utils.HasQZileanBuff(enemy) then
+        if Zilean.W:Cast() then return true end
+      end
+    end
+    for k, enemy in ipairs(ObjectManager.GetNearby("neutral", "minions")) do
+      if Utils.HasQZileanBuff(enemy) then
+        if Zilean.W:Cast() then return true end
+      end
+    end
+  end
+  return false
+end
+
+function Zilean.LogicE()
+  if (Combo and Menu.Get("Combo.E") and Player.Mana > qMana+eMana+wMana+rMana) or (Harass and Menu.Get("Harass.E") and Player.Mana > (eMana + qMana + wMana)*4) then
+    for k, enemy in ipairs(Utils.GetTargets(Zilean.E)) do
+      if Utils.HasQZileanBuff(enemy) or not Zilean.Q:IsReady() then
+        if Zilean.E:Cast(enemy) then return true end
+      end
+    end
+  end
+  if Menu.Get("Misc.AutoE") and Player.Mana > eMana then
+    for _, v in ipairs(ObjectManager.GetNearby("ally","heroes")) do
+      local ally = v.AsHero
+      local incomingDamage = HPred.GetDamagePrediction(ally,0.5,false)
+      if Zilean.E:IsInRange(ally) and Menu.Get("1" .. ally.CharName) and incomingDamage >= ally.Health * 0.15 then
+        if Zilean.E:Cast(ally) then return true end
+      end
+      for k, enemy in ipairs(ObjectManager.GetNearby("enemy", "heroes")) do
+        if Zilean.E:IsInRange(ally) and Menu.Get("1" .. ally.CharName) and ally:Distance(enemy.AsHero.Position) < 400 and enemy.IsVisible then
+          if Zilean.E:Cast(ally) then return true end
+        end
+      end
+    end
+  end
+  return false
+end
+
+function Zilean.LogicR()
+  if Menu.Get("Misc.AutoR") and Player.Mana > rMana then
+    for k, v in pairs(ObjectManager.GetNearby("ally","heroes")) do
+      local ally = v.AsHero
+      local incomingDamage = HPred.GetDamagePrediction(ally,2,false)
+      local pre = HPred.GetHealthPrediction(ally,0.5,true)
+      local enemies = Utils.CountEnemiesInRange(ally,700)
+      if Zilean.R:IsInRange(ally) and Menu.Get("1" .. ally.CharName) and ally.Health - incomingDamage < enemies * ally.Level * 15 and Utils.ValidUlt(ally) then
+        if Zilean.R:Cast(ally) then return true end
+      elseif Zilean.R:IsInRange(ally) and Menu.Get("1" .. ally.CharName) and ally.Health - incomingDamage < ally.Level * 10 and Utils.ValidUlt(ally) then
+        if Zilean.R:Cast(ally) then return true end
+      end
+      if Zilean.R:IsInRange(ally) and Menu.Get("1" .. ally.CharName) and (pre/ally.MaxHealth) * 100 < 20 and Utils.CountEnemiesInRange(ally,1200) >= 1 and Utils.ValidUlt(ally) then
+        printf("wtf")
+        if Zilean.R:Cast(ally) then return true end
+      end
+    end
+  end
+  return false
+end
+-- function Zilean.OnProcessSpell(sender,spell)
+-- if spell.Target ~= nil then
+-- if spell.SpellData and not spell.IsBasicAttack and spell.Target.IsHero and sender.IsMelee and sender.TeamId ~= spell.Target.TeamId then
+-- local tSpell = SpellLib.Targeted({Slot = spell.Slot}) --sender:GetSpell(spell.Slot)
+-- table.insert(incomingDamage, {Damage = tSpell:GetDamage(spell.Target), Time=Game.GetTime(), Skillshot = false})
+-- return true
+-- end
+-- else
+-- for k, champion in ipairs(ObjectManager.Get("all","heroes")) do
+-- if champion.IsHero and sender.TeamId ~= champion.TeamId and champion:Distance(sender) < 2000 and champion.IsVisible and not champion.IsDead then
+-- if Utils.CanHit(champion,spell) then
+-- local tSpell = sender:GetSpell(spell.Slot)
+-- table.insert(incomingDamage, {Damage = tSpell:GetDamage(spell.Target), Time=Game.GetTime(), Skillshot = true}
+-- end
+-- end
+-- end
+-- end
+-- return false
+-- end
+
+-- function Zilean.OnSpellCast(sender,spell)
+-- if spell.Target ~= nil and spell.SpellData and not spell.IsBasicAttack then
+-- if spell.Target.IsHero and not sender.IsMelee and sender.TeamId ~= spell.Target.TeamId then
+-- local tSpell = sender:GetSpell(spell.Slot)
+-- table.insert(incomingDamage, {Damage = tSpell:GetDamage(spell.Target), Time=Game.GetTime(), Skillshot = false})
+-- return true
+-- end
+-- end
+-- return false
+-- end
+
+function Zilean.OnDraw()
+  if Player.IsVisible and Player.IsOnScreen and not Player.IsDead then
+    local Pos = Player.Position
+    local spells = {Zilean.Q,Zilean.W,Zilean.E,Zilean.R}
+    for k, v in ipairs(spells) do
+      if Menu.Get("Drawing."..v.Key..".Enabled", true) then
+        if Renderer.DrawCircle3D(Pos, v.Range, 30, 3, Menu.Get("Drawing."..v.Key..".Color")) then return true end
+      end
+    end
+  end
+  return false
+end
 function Zilean.OnUpdate()
   if not Utils.IsGameAvailable() then return false end
-
-  local OrbwalkerMode = Orbwalker.GetMode()
-  local OrbwalkerLogic = Zilean.Logic[OrbwalkerMode]
-
-  if OrbwalkerLogic then
-    if OrbwalkerLogic() then return true end
+  if Utils.NoLag(0) then
+    if Utils.SetMana() then return true end
   end
-
-  if Zilean.Logic.Auto() then return true end
-
+  if Utils.NoLag(1) and Zilean.R:IsReady() then
+    if Zilean.LogicR() then return true end
+  end
+  if Utils.NoLag(2) and Zilean.Q:IsReady() then
+    if Zilean.LogicQ() then return true end
+  end
+  if Utils.NoLag(3) and Zilean.W:IsReady() then
+    if Zilean.LogicW() then return true end
+  end
+  if Utils.NoLag(4) and Zilean.E:IsReady() then
+    if Zilean.LogicE() then return true end
+  end
+  local OrbwalkerMode = Orbwalker.GetMode()
+  if OrbwalkerMode == "Combo" then
+    Combo = true
+  else
+    Combo = false
+  end
+  if OrbwalkerMode == "Harass" then
+    Harass = true
+  else
+    Harass = false
+  end
+  if OrbwalkerMode == "Waveclear" then
+    Waveclear = true
+  else
+    Waveclear = false
+  end
+  iTick = iTick + 1
+  if iTick > 4 then
+    iTick = 0
+  end
   return false
 end
 
@@ -478,8 +501,6 @@ function Zilean.LoadMenu()
     Menu.ColoredText("> E", 0x0066CCFF, false)
     Menu.Checkbox("Combo.E", "Use E", true)
     Menu.ColoredText("Harass", 0x118AB2FF, true)
-    Menu.ColoredText("Mana Percent limit", 0xFFD700FF, true)
-    Menu.Slider("ManaSlider","",50,0,100)
     Menu.ColoredText("> Q", 0x0066CCFF, false)
     Menu.Checkbox("Harass.Q", "Use Q", true)
     Menu.ColoredText("> W", 0x0066CCFF, false)
@@ -487,15 +508,13 @@ function Zilean.LoadMenu()
     Menu.ColoredText("> E", 0x0066CCFF, false)
     Menu.Checkbox("Harass.E", "Use E", true)
     Menu.ColoredText("WaveClear/JungleClear", 0xEF476FFF, true)
-    Menu.ColoredText("Mana Percent limit", 0xFFD700FF, true)
-    Menu.Slider("ManaSliderLane","",35,0,100)
     Menu.ColoredText("> Q", 0x0066CCFF, false)
     Menu.Checkbox("WaveClear.Q", "Use Q", true)
     Menu.ColoredText("> W", 0x0066CCFF, false)
     Menu.Checkbox("WaveClear.W", "Reset Bomb with W", true)
     Menu.NextColumn()
-    Menu.ColoredText("Auto", 0xB65A94FF, true)
-    Menu.Checkbox("Auto.R", "Auto R", true)
+    Menu.ColoredText("Misc", 0xB65A94FF, true)
+    Menu.Checkbox("Misc.AutoR", "Auto R", true)
     Menu.NewTree("Rlist","R Whitelist", function()
     Menu.ColoredText("R Whitelist", 0x06D6A0FF, true)
     for _, Object in pairs(ObjectManager.Get("ally", "heroes")) do
@@ -503,10 +522,8 @@ function Zilean.LoadMenu()
       Menu.Checkbox("1" .. Name, "Use on " .. Name, true)
     end
     end)
-    Menu.ColoredText("Misc", 0xB65A94FF, true)
-    Menu.Checkbox("Misc.QI",   "Use [Q] on Interrupter", true)
-    Menu.Checkbox("Misc.E",   "Use [E] on gapclose", true)
-    Menu.Checkbox("Misc.AutoCC",   "Auto Q on CC", true)
+    Menu.Checkbox("Misc.GapcloseE",   "Use [E] on gapclose", true)
+    Menu.Checkbox("Misc.AutoE",   "Auto E", true)
     Menu.Separator()
     Menu.ColoredText("Drawing", 0xB65A94FF, true)
     Menu.Checkbox("Drawing.Q.Enabled",   "Draw [Q] Range",true)
@@ -517,10 +534,8 @@ function Zilean.LoadMenu()
     Menu.ColorPicker("Drawing.R.Color", "Draw [R] Color", 0x118AB2FF)
     end)
   end
-  if loaded == false then
-    Menu.RegisterMenu("Simple Zilean", "Simple Zilean", ZileanMenu)
-    loaded = true
-  end
+  if Menu.RegisterMenu("Simple Zilean", "Simple Zilean", ZileanMenu) then return true end
+  return false
 end
 
 function OnLoad()
