@@ -112,13 +112,6 @@ function Utils.IsGameAvailable()
 end
 
 function Utils.SetMana()
-  if (Player.Health/Player.MaxHealth) * 100 < 20 then
-    qMana = 0
-    wMana = 0
-    eMana = 0
-    rMana = 0
-    return true
-  end
   if Taliyah.Q:IsReady() then
     qMana = Taliyah.Q:GetManaCost()
   else
