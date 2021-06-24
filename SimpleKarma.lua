@@ -250,7 +250,7 @@ function Utils.CanHit(target,spell)
     local pred = target:FastPrediction(spell.CastDelay)
     if pred == nil then return false end
     if spell.LineWidth > 0 then
-      local powCalc = (spell.LineWidth + hero.BoundingRadius)^2
+      local powCalc = (spell.LineWidth + target.BoundingRadius)^2
       if (pred:LineDistance(spell.StartPos,spell.EndPos,true) <= powCalc) or (target.Position:LineDistance(spell.StartPos,spell.EndPos,true) <= powCalc) then
         return true
       end
