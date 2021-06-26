@@ -335,7 +335,7 @@ function Zilean.LogicQ()
 end
 
 function Zilean.LogicW()
-  if not Zilean.Q:IsReady() and (Combo and Menu.Get("Combo.Q") and Player.Mana > qMana) or (Harass and Menu.Get("Harass.Q") and Player.Mana > (eMana + qMana + wMana)*4) then
+  if not Zilean.Q:IsReady() and (Combo and Menu.Get("Combo.W") and Player.Mana > qMana) or (Harass and Menu.Get("Harass.W") and Player.Mana > (eMana + qMana + wMana)*4) then
     for k, hero in ipairs(ObjectManager.GetNearby("all", "heroes")) do
       if Utils.HasQZileanBuff(hero) then
         if Zilean.W:Cast() then return true end
