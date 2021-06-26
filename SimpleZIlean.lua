@@ -119,7 +119,7 @@ function Utils.SetMana()
 end
 
 function Utils.GetTargets(Spell)
-  return TS:GetTargets(Spell.Range,true)
+  return {TS:GetTarget(Spell.Range,true)}
 end
 
 function Utils.GetTargetsRange(Range)
@@ -394,12 +394,12 @@ function Zilean.LogicR()
       local incomingDamage = HPred.GetDamagePrediction(ally,2,false)
       local pre = HPred.GetHealthPrediction(ally,0.5,true)
       local enemies = Utils.CountEnemiesInRange(ally,700)
-      if Zilean.R:IsInRange(ally) and Menu.Get("1" .. ally.CharName) and ally.Health - incomingDamage < enemies * ally.Level * 15 and Utils.ValidUlt(ally) then
+      if Zilean.R:IsInRange(ally) and Menu.Get("1" .. ally.CharName) and ally.Health - incomingDamage < enemies * ally.Level * 25 and Utils.ValidUlt(ally) then
         if Zilean.R:Cast(ally) then return true end
-      elseif Zilean.R:IsInRange(ally) and Menu.Get("1" .. ally.CharName) and ally.Health - incomingDamage < ally.Level * 10 and Utils.ValidUlt(ally) then
+      elseif Zilean.R:IsInRange(ally) and Menu.Get("1" .. ally.CharName) and ally.Health - incomingDamage < ally.Level * 20 and Utils.ValidUlt(ally) then
         if Zilean.R:Cast(ally) then return true end
       end
-      if Zilean.R:IsInRange(ally) and Menu.Get("1" .. ally.CharName) and (pre/ally.MaxHealth) * 100 < 20 and Utils.CountEnemiesInRange(ally,1200) >= 1 and Utils.ValidUlt(ally) then
+      if Zilean.R:IsInRange(ally) and Menu.Get("1" .. ally.CharName) and (pre/ally.MaxHealth) * 100 < 20 and Utils.CountEnemiesInRange(ally,1200) > 0 and Utils.ValidUlt(ally) then
         printf("wtf")
         if Zilean.R:Cast(ally) then return true end
       end
