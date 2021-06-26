@@ -56,9 +56,9 @@ Karma.Q = SpellLib.Skillshot({
   Delay = 0.25,
   Speed = 1700,
   Radius = 60,
+  EffectRadius = 280,
   Collisions = {Minions = true, WindWall = true },
   Type = "Linear",
-  UseHitbox = true,
   Key = "Q"
 })
 Karma.Q2 = SpellLib.Skillshot({
@@ -70,7 +70,6 @@ Karma.Q2 = SpellLib.Skillshot({
   EffectRadius = 560,
   Collisions = {Minions = true, WindWall = true },
   Type = "Linear",
-  UseHitbox = true,
   Key = "Q"
 })
 Karma.W = SpellLib.Targeted({
@@ -314,11 +313,11 @@ function Karma.LogicQ()
       local qPred = Karma.Q:GetPrediction(enemy)
       local qPred2 = Karma.Q2:GetPrediction(enemy)
       if not Utils.HasBuff(Player,"KarmaMantra") and (not Karma.R:IsReady() or not Menu.Get("Combo.R"))  then
-        if qPred ~= nil and qPred.HitChanceEnum >= HitChanceEnum.Low and qPred.TargetPosition:Distance(qPred.CastPosition) <= 120 then
+        if qPred ~= nil and qPred.HitChanceEnum >= HitChanceEnum.Low and qPred.TargetPosition:Distance(qPred.CastPosition) < 120 then
           if Karma.Q:Cast(qPred.CastPosition) then return true end
         end
       elseif Utils.HasBuff(Player,"KarmaMantra") and Utils.CountEnemiesInRange(Player,1200) <= 3 then
-        if qPred2 ~= nil and qPred2.HitChanceEnum >= HitChanceEnum.Low and qPred2.TargetPosition:Distance(qPred2.CastPosition) <= 420 then
+        if qPred2 ~= nil and qPred2.HitChanceEnum >= HitChanceEnum.Low and qPred2.TargetPosition:Distance(qPred2.CastPosition) < 420 then
           if Karma.Q2:Cast(qPred2.CastPosition) then return true end
         end
       end
