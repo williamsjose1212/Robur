@@ -96,12 +96,6 @@ function Utils.IsGameAvailable()
 end
 
 function Utils.SetMana()
-  if (Player.Health/Player.MaxHealth) * 100 < 20 then
-    qMana = 0
-    eMana = 0
-    rMana = 0
-    return true
-  end
   if Evelynn.Q:IsReady() then
     qMana = Evelynn.Q:GetManaCost()
   else
@@ -126,7 +120,7 @@ function Utils.SetMana()
 end
 
 function Utils.GetTargets(Spell)
-  return TS:GetTargets(Spell.Range,true)
+  return {TS:GetTarget(Spell.Range,true)}
 end
 
 function Utils.GetTargetsRange(Range)
@@ -389,7 +383,7 @@ function Evelynn.Logic.Waveclear()
       end
       if minionInRange and minion.IsTargetable then
         table.insert(minionsQ, minion)
-        table.sort(minionsQ, function(a, b) return a.MaxHealth > b.MaxHealth end)
+        table.sort(minionsQ, function(a, b) return a.MaxHealth < b.MaxHealth end)
       end
     end
     for k, minion in pairs(minionsQ) do
