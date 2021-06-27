@@ -112,7 +112,7 @@ function Utils.SetMana()
 end
 
 function Utils.GetTargets(Spell)
-  return TS:GetTargets(Spell.Range,true)
+  return {TS:GetTarget(Spell.Range,true)}
 end
 
 function Utils.GetTargetsRange(Range)
