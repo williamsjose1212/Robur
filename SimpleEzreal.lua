@@ -84,7 +84,7 @@ Ezreal.E = SpellLib.Skillshot({
 
 Ezreal.R = SpellLib.Skillshot({
   Slot = SpellSlots.R,
-  Range = 4000,
+  Range = 3000,
   Delay = 1.1,
   Radius = 160,
   Speed = 2000,
