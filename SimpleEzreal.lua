@@ -1,4 +1,4 @@
-<if Player.CharName ~= "Ezreal" then return end
+if Player.CharName ~= "Ezreal" then return end
 
 module("Simple Ezreal", package.seeall, log.setup)
 clean.module("Simple Ezreal", clean.seeall, log.setup)
@@ -324,7 +324,7 @@ function Ezreal.LogicQ()
     local shouldIgnoreMinion = minion and (Orbwalker.IsLasthitMinion(minion) or Orbwalker.IsIgnoringMinion(minion))
     if minionInRange and not shouldIgnoreMinion and minion.IsTargetable  and Utils.IsValidTarget(minion) then
       table.insert(minionsQ, minion)
-      table.sort(minionsQ, function(a, b) return a.MaxHealth < b.MaxHealth end)
+      table.sort(minionsQ, function(a, b) return a.MaxHealth > b.MaxHealth end)
     end
   end
   for k, v in pairs(ObjectManager.GetNearby("neutral", "minions")) do
@@ -350,9 +350,9 @@ function Ezreal.LogicQ()
         local delay = (Player:Distance(minion.Position)/ Ezreal.Q.Speed + Ezreal.Q.Delay)*1000
         local hpPred = HPred.GetHealthPrediction(minion,delay,false)
         if hpPred > 20 then
-          if hpPred < Ezreal.Q:GetDamage(minion) then
+          if minion.Health < Ezreal.Q:GetDamage(minion) then
             if Ezreal.Q:Cast(qPred.CastPosition) then return true end
-          elseif (minion.Health/minion.MaxHealth)*100 > 80 and hpPred > Ezreal.Q:GetDamage(minion) and Menu.Get("WaveClear.Qpush") then
+          elseif (minion.Health/minion.MaxHealth)*100 > 80 and Menu.Get("WaveClear.Qpush") then
             if Ezreal.Q:Cast(qPred.CastPosition) then return true end
           end
         end
@@ -362,7 +362,7 @@ function Ezreal.LogicQ()
   if Player.Mana > (eMana + qMana + wMana+rMana)*3 and Menu.Get("WaveClear.Q") and not Combo and Menu.Get("WaveClear.Ql") then
     for k, minion in pairs(minionsQ) do
       local qPred = Prediction.GetPredictedPosition(minion, Ezreal.Q, Player.Position)
-      if qPred ~= nil and qPred.HitChanceEnum >= HitChanceEnum.Low and Player:Distance(minion.Position) > Orbwalker.GetTrueAutoAttackRange() then
+      if qPred ~= nil and qPred.HitChanceEnum >= HitChanceEnum.High and Player:Distance(minion.Position) > Orbwalker.GetTrueAutoAttackRange() then
         local delay = (Player:Distance(minion.Position)/ Ezreal.Q.Speed + Ezreal.Q.Delay)*1000
         local hpPred = HPred.GetHealthPrediction(minion,delay,false)
         if hpPred > 0 and minion.Health < Ezreal.Q:GetDamage(minion) then
