@@ -57,7 +57,7 @@ Ezreal.Q = SpellLib.Skillshot({
   Range = 1220,
   Delay = 0.25,
   Speed = 2000,
-  Radius = 60,
+  Radius = 120,
   Collisions = {Heroes = true, Minions = true, WindWall = true },
   Type = "Linear",
   Key = "Q"
