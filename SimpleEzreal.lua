@@ -1,4 +1,4 @@
-if Player.CharName ~= "Ezreal" then return end
+<if Player.CharName ~= "Ezreal" then return end
 
 module("Simple Ezreal", package.seeall, log.setup)
 clean.module("Simple Ezreal", clean.seeall, log.setup)
@@ -310,7 +310,7 @@ function Ezreal.LogicQ()
       local qPred = Ezreal.Q:GetPrediction(enemy)
       local wPred = Ezreal.W:GetPrediction(enemy)
       if not Ezreal.W:IsReady() or not Menu.Get("Combo.W") or (wPred == nil or wPred.HitChanceEnum < HitChanceEnum.Low or wPred.TargetPosition:Distance(wPred.CastPosition) > 160) or not Ezreal.W:CanCast(enemy) then
-        if qPred ~= nil and qPred.HitChanceEnum >= HitChanceEnum.Medium and qPred.TargetPosition:Distance(qPred.CastPosition) <= 120 then
+        if qPred ~= nil and qPred.HitChanceEnum >= HitChanceEnum.High and qPred.TargetPosition:Distance(qPred.CastPosition) <= 120 then
           if Ezreal.Q:Cast(qPred.CastPosition) then return true end
         end
       end
@@ -380,7 +380,7 @@ function Ezreal.LogicW()
       local wPred = Ezreal.W:GetPrediction(enemy)
       if wPred ~= nil and not Utils.CanMove(enemy) then
         if Ezreal.W:Cast(enemy.Position) then return true end
-      elseif wPred ~= nil and wPred.HitChanceEnum >= HitChanceEnum.Medium and wPred.TargetPosition:Distance(wPred.CastPosition) <= 160 then
+      elseif wPred ~= nil and wPred.HitChanceEnum >= HitChanceEnum.High and wPred.TargetPosition:Distance(wPred.CastPosition) <= 160 then
         if Ezreal.W:Cast(wPred.CastPosition) then return true end
       end
     end
