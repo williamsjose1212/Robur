@@ -54,7 +54,7 @@ local overkill = 0
 
 Ezreal.Q = SpellLib.Skillshot({
   Slot = SpellSlots.Q,
-  Range = 1220,
+  Range = 1200,
   Delay = 0.25,
   Speed = 2000,
   Radius = 120,
@@ -380,7 +380,7 @@ function Ezreal.LogicW()
       local wPred = Ezreal.W:GetPrediction(enemy)
       if wPred ~= nil and not Utils.CanMove(enemy) then
         if Ezreal.W:Cast(enemy.Position) then return true end
-      elseif wPred ~= nil and wPred.HitChanceEnum >= HitChanceEnum.High and wPred.TargetPosition:Distance(wPred.CastPosition) <= 160 then
+      elseif wPred ~= nil and wPred.HitChanceEnum >= HitChanceEnum.Low and wPred.TargetPosition:Distance(wPred.CastPosition) <= 80 then
         if Ezreal.W:Cast(wPred.CastPosition) then return true end
       end
     end
