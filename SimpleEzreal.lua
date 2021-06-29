@@ -310,7 +310,7 @@ function Ezreal.LogicQ()
       local qPred = Ezreal.Q:GetPrediction(enemy)
       local wPred = Ezreal.W:GetPrediction(enemy)
       if not Ezreal.W:IsReady() or not Menu.Get("Combo.W") or (wPred == nil or wPred.HitChanceEnum < HitChanceEnum.Low or wPred.TargetPosition:Distance(wPred.CastPosition) > 160) or not Ezreal.W:CanCast(enemy) then
-        if qPred ~= nil and qPred.HitChanceEnum >= HitChanceEnum.High and qPred.TargetPosition:Distance(qPred.CastPosition) <= 120 then
+        if qPred ~= nil and qPred.HitChanceEnum >= HitChanceEnum.Low and qPred.TargetPosition:Distance(qPred.CastPosition) <= 60 then
           if Ezreal.Q:Cast(qPred.CastPosition) then return true end
         end
       end
