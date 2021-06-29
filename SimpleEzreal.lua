@@ -49,12 +49,12 @@ local wMana = 0
 local eMana = 0
 local rMana = 0
 local iTick = 0
-local Combo,Harass,Waveclear = false,false,false
+local Combo,Harass,Waveclear,Lasthit = false,false,false,false
 local overkill = 0
 
 Ezreal.Q = SpellLib.Skillshot({
   Slot = SpellSlots.Q,
-  Range = 1200,
+  Range = 1210,
   Delay = 0.25,
   Speed = 2000,
   Radius = 120,
@@ -309,8 +309,8 @@ function Ezreal.LogicQ()
     for k, enemy in ipairs(Utils.GetTargets(Ezreal.Q)) do
       local qPred = Ezreal.Q:GetPrediction(enemy)
       local wPred = Ezreal.W:GetPrediction(enemy)
-      if not Ezreal.W:IsReady() or not Menu.Get("Combo.W") or (wPred == nil or wPred.HitChanceEnum < HitChanceEnum.Low or wPred.TargetPosition:Distance(wPred.CastPosition) > 80) or not Ezreal.W:CanCast(enemy) then
-        if qPred ~= nil and qPred.HitChanceEnum >= HitChanceEnum.Medium and qPred.TargetPosition:Distance(qPred.CastPosition) <= 60 then
+      if not Ezreal.W:IsReady() or not Menu.Get("Combo.W") or not Ezreal.W:CanCast(enemy) then
+        if qPred ~= nil and qPred.HitChanceEnum >= HitChanceEnum.High then
           if Ezreal.Q:Cast(qPred.CastPosition) then return true end
         end
       end
@@ -359,7 +359,7 @@ function Ezreal.LogicQ()
       end
     end
   end
-  if Player.Mana > (eMana + qMana + wMana+rMana)*3 and Menu.Get("WaveClear.Q") and not Combo and Menu.Get("WaveClear.Ql") then
+  if Player.Mana > (eMana + qMana + wMana+rMana)*3 and Menu.Get("WaveClear.Q") and Menu.Get("WaveClear.Ql") and (Waveclear or Lasthit or Harass) then
     for k, minion in pairs(minionsQ) do
       local qPred = Prediction.GetPredictedPosition(minion, Ezreal.Q, Player.Position)
       if qPred ~= nil and qPred.HitChanceEnum >= HitChanceEnum.High and Player:Distance(minion.Position) > Orbwalker.GetTrueAutoAttackRange() then
@@ -380,7 +380,7 @@ function Ezreal.LogicW()
       local wPred = Ezreal.W:GetPrediction(enemy)
       if wPred ~= nil and not Utils.CanMove(enemy) then
         if Ezreal.W:Cast(enemy.Position) then return true end
-      elseif wPred ~= nil and wPred.HitChanceEnum >= HitChanceEnum.Low and wPred.TargetPosition:Distance(wPred.CastPosition) <= 80 then
+      elseif wPred ~= nil and wPred.HitChanceEnum >= HitChanceEnum.High then
         if Ezreal.W:Cast(wPred.CastPosition) then return true end
       end
     end
@@ -478,6 +478,28 @@ function Ezreal.Logic.Auto()
       end
     end
   end
+  if Menu.Get("HarassOn") then
+    local MenuValueQ = Menu.Get("Harass.Q")
+    local MenuValueW = Menu.Get("Harass.W")
+    if MenuValueQ and Ezreal.Q:IsReady() and Player.Mana > qMana + wMana then
+      for k, enemy in ipairs(Utils.GetTargets(Ezreal.Q)) do
+        local qPred = Ezreal.Q:GetPrediction(enemy)
+        if not Ezreal.W:IsReady() or not MenuValueW or not Ezreal.W:CanCast(enemy) then
+          if qPred ~= nil and qPred.HitChanceEnum >= HitChanceEnum.High and Utils.IsValidTarget(enemy) then
+            if Ezreal.Q:Cast(qPred.CastPosition) then return true end
+          end
+        end
+      end
+    end
+    if MenuValueW and Ezreal.W:IsReady() and Player.Mana > wMana + qMana then
+      for k, enemy in ipairs(Utils.GetTargets(Ezreal.W)) do
+        local wPred = Ezreal.W:GetPrediction(enemy)
+        if wPred ~= nil and wPred.HitChanceEnum >= HitChanceEnum.High and Utils.IsValidTarget(enemy) then
+          if Ezreal.W:Cast(wPred.CastPosition) then return true end
+        end
+      end
+    end
+  end
 end
 
 function Ezreal.OnDraw()
@@ -488,6 +510,18 @@ function Ezreal.OnDraw()
       if Menu.Get("Drawing."..v.Key..".Enabled", true) then
         if Renderer.DrawCircle3D(Pos, v.Range, 30, 3, Menu.Get("Drawing."..v.Key..".Color")) then return true end
       end
+    end
+    if Menu.Get("Drawing.Status") then
+      local status, color
+      local p = Player.Position:ToScreen()
+      if Menu.Get("HarassOn") then
+        status, color = "Harass: Enabled", 0x00FF00FF
+        p.x = p.x - 63
+      else
+        status, color = "Harass: Disabled", 0xFF0000FF
+        p.x = p.x - 66
+      end
+      Renderer.DrawText(p, {x=500,y=500}, status, color)
     end
   end
   return false
@@ -526,6 +560,11 @@ function Ezreal.OnUpdate()
   else
     Waveclear = false
   end
+  if OrbwalkerMode == "Lasthit" then
+    Lasthit = true
+  else
+    Lasthit = false
+  end
   iTick = iTick + 1
   if iTick > 4 then
     iTick = 0
@@ -549,6 +588,7 @@ function Ezreal.LoadMenu()
     Menu.Checkbox("Harass.Q", "Use Q", true)
     Menu.ColoredText("> W", 0x0066CCFF, false)
     Menu.Checkbox("Harass.W", "Use W", true)
+    Menu.Keybind("HarassOn", "Toggle Auto Harass", string.byte('L'), true,true)
     Menu.ColoredText("WaveClear/JungleClear", 0xEF476FFF, true)
     Menu.ColoredText("> Q", 0x0066CCFF, false)
     Menu.Checkbox("WaveClear.Q", "Use Q", true)
@@ -560,6 +600,9 @@ function Ezreal.LoadMenu()
     Menu.Checkbox("AutoRcc", "Auto R cc", true)
     Menu.Checkbox("AutoRhit", "Auto R HitCount", true)
     Menu.Slider("HitcountR", "HitCount", 3, 1, 5)
+    Menu.Separator()
+    Menu.ColoredText("Drawing", 0xB65A94FF, true)
+    Menu.Checkbox("Drawing.Status",   "Draw Harass Status",true)
     Menu.Checkbox("Drawing.Q.Enabled",   "Draw [Q] Range",true)
     Menu.ColorPicker("Drawing.Q.Color", "Draw [Q] Color", 0x118AB2FF)
     Menu.Checkbox("Drawing.E.Enabled",   "Draw [E] Range",false)
