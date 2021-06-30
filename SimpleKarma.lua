@@ -66,7 +66,7 @@ Karma.Q2 = SpellLib.Skillshot({
   Range = 1230,
   Delay = 0.25,
   Speed = 1700,
-  Radius = 60,
+  Radius = 120,
   EffectRadius = 560,
   Collisions = {Minions = true, WindWall = true },
   Type = "Linear",
@@ -317,7 +317,7 @@ function Karma.LogicQ()
           if Karma.Q:Cast(qPred.CastPosition) then return true end
         end
       elseif Utils.HasBuff(Player,"KarmaMantra") and Utils.CountEnemiesInRange(Player,1200) < 3 then
-        if qPred2 ~= nil and qPred2.HitChanceEnum >= HitChanceEnum.VeryHigh then
+        if qPred2 ~= nil and qPred2.HitChanceEnum >= HitChanceEnum.High then
           if Karma.Q2:Cast(qPred2.CastPosition) then return true end
         end
       end
@@ -402,7 +402,7 @@ end
 function Karma.LogicE()
   if (Combo and Menu.Get("Combo.E") and Player.Mana > eMana+qMana) or (Harass and Menu.Get("Harass.E") and Player.Mana > (eMana + qMana + wMana)*4) then
     for k, enemy in ipairs(Utils.GetTargets(Karma.Q)) do
-      if Utils.HasBuff(enemy,"KarmaSpiritBind") and Menu.Get("1" .. Player.CharName) and (not Utils.HasBuff(Player,"KarmaMantra") or not Karma.Q:IsReady() or Utils.CountEnemiesInRange(Player,1200) >= 3 or Utils.CountHeroes(Player,700,"ally") >= 3) then
+      if Menu.Get("1" .. Player.CharName) and Utils.HasBuff(enemy,"KarmaSpiritBind") or (not Utils.HasBuff(Player,"KarmaMantra") or not Karma.Q:IsReady() or Utils.CountEnemiesInRange(Player,1200) >= 3 or Utils.CountHeroes(Player,700,"ally") >= 3) then
         if Karma.E:Cast(Player) then return true end
       end
     end
