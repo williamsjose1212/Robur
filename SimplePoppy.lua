@@ -43,7 +43,7 @@ Poppy.Q = SpellLib.Skillshot({
   Range = 430,
   Delay = 0.25,
   Speed = 1700,
-  Radius = 100,
+  Radius = 80,
   Type = "Linear",
   Key = "Q"
 })
@@ -58,7 +58,7 @@ Poppy.W = SpellLib.Active({
 
 Poppy.E = SpellLib.Targeted({
   Slot = SpellSlots.E,
-  Range = 525,
+  Range = 590,
   Key = "E"
 })
 
@@ -86,11 +86,11 @@ function Utils.IsGameAvailable()
 end
 
 function Utils.GetTargets(Spell)
-  return TS:GetTargets(Spell.Range,true)
+  return {TS:GetTarget(Spell.Range,true)}
 end
 
 function Utils.IsValidTarget(Target)
-  return Target and Target.IsTargetable and Target.IsAlive
+  return Target and Target.IsAlive and Target.IsVisible
 end
 
 function Utils.CanStun(target)
@@ -108,12 +108,22 @@ function Utils.GetTargetsRange(Range)
   return TS:GetTargets(Range,true)
 end
 
+function Utils.HasBuff(target,buffname)
+  local TargetAi = target.AsAI
+  if TargetAi and TargetAi.IsValid then
+    local hBuff= TargetAi:GetBuff(buffname)
+    if hBuff then
+      return true
+    end
+  end
+  return false
+end
 function Poppy.Logic.Combo()
   local _Q = Poppy.Q:GetSpellData()
   if Poppy.Q:IsReady() and Menu.Get("Combo.Q") then
     for k,v in pairs(Utils.GetTargets(Poppy.Q)) do
       local predQ = Poppy.Q:GetPrediction(v)
-      if predQ ~= nil and predQ.HitChanceEnum >= HitChanceEnum.Medium and Utils.IsValidTarget(v) then
+      if predQ ~= nil and predQ.HitChanceEnum >= HitChanceEnum.Medium and Utils.IsValidTarget(v) and predQ.TargetPosition:Distance(predQ.CastPosition) < 160 then
         if Poppy.Q:Cast(predQ.CastPosition)then return true end
       end
     end
@@ -124,7 +134,7 @@ function Poppy.Logic.Combo()
       if Utils.IsValidTarget(v) and Poppy.E:IsInRange(v) then
         if Utils.CanStun(v) then
           if Poppy.E:Cast(v) then return true end
-        elseif Poppy.Q:GetDamage(v) * 2 >= predHp and (Poppy.Q:IsReady() or _Q.RemainingCooldown < 3.0) then
+        elseif Poppy.Q:GetDamage(v) * 1.5 >= predHp and (Poppy.Q:IsReady() or _Q.RemainingCooldown < 3.0) then
           if Poppy.E:Cast(v) then return true end
         elseif Poppy.E:GetDamage(v) * 1.5 >= predHp then
           if Poppy.E:Cast(v) then return true end
@@ -268,8 +278,18 @@ function Poppy.OnInterruptibleSpell(source, spell, danger, endT, canMove)
   if source.IsEnemy and Menu.Get("AutoEI") and Poppy.E:IsReady() and danger > 2 and Player:Distance(source.Position) <= Poppy.E.Range then
     if Poppy.E:Cast(source) then return true end
   elseif source.IsEnemy and Menu.Get("AutoRI") and Poppy.R:IsReady() and danger > 2 and Player:Distance(source.Position) <= Poppy.R.Range then
-    Poppy.R:CastOnHitChance(source,Enums.HitChance.VeryHigh)
-    if Orbwalker.MoveTo(nil) then return true end
+    if Poppy.R:CastOnHitChance(source,Enums.HitChance.VeryHigh) then return true end
+  end
+  return false
+end
+
+function Poppy.OnPreAttack(args)
+  if Poppy.E:IsReady() and args.Target.IsHero and Utils.CanStun(args.Target) and Utils.HasBuff(Player,"poppypassivebuff") then
+    args.Process = false
+    if args.Process == false then return true end
+  else
+    args.Process = true
+    if args.Process == true then return true end
   end
   return false
 end
