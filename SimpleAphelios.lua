@@ -69,7 +69,7 @@ local InfernumOff = "ApheliosOffHandBuffInfernum"
 local InfernumOn = "ApheliosInfernumManager"
 local CrescendumOff = "ApheliosOffHandBuffCrescendum"
 local CrescendumOn = "ApheliosCrescendumManager"
-local CalibrumDebuff = "aphelioscalibrumbonusrangebuff"
+local CalibrumDebuff = "aphelioscalibrumbonusrangedebuff"
 local GravitumDebuff = "ApheliosGravitumDebuff"
 local lastCalibrum = 0
 local lastSeverum = 0
@@ -568,7 +568,18 @@ end
 
 function Aphelios.LogicW()
   local qTarget = TS:GetTarget(Aphelios.Q1.Range)
-  if None then return false end
+  if None or not Combo or not Harass then return false end
+  for k, v in pairs(ObjectManager.Get("enemy", "heroes")) do
+    local enemy = v.AsAI
+    if Utils.HasBuff(Player,GravitumOn) then
+      if Utils.HasBuff(enemy,GravitumDebuff) and Aphelios.Q3:IsInRange(enemy) then return false end
+    end
+    if Utils.HasBuff(Player,GravitumOff) then
+      if Utils.HasBuff(enemy,GravitumDebuff) then
+        if Aphelios.W:Cast() then return true end
+      end
+    end
+  end
   if Utils.IsValidTarget(qTarget) then
     if qTarget:Distance(Player.Position) > range then
       if q1Ready and Utils.HasBuff(Player,CalibrumOff) then
@@ -827,7 +838,7 @@ function Aphelios.LogicR()
   if not None then
     local rTarget = TS:GetTarget(1300,false)
     if Utils.IsValidTarget(rTarget) then
-      if rTarget.Health < Aphelios.R1:GetDamage(rTarget) then
+      if rTarget.Health <= Aphelios.R1:GetDamage(rTarget) then
         if r4Ready then
           local rPred = Aphelios.R1:GetPrediction(rTarget)
           if Utils.HasBuff(Player,InfernumOn) then
@@ -1038,7 +1049,7 @@ end
 function Aphelios.LogicQ()
   local qTarget = TS:GetTarget(Aphelios.Q1.Range,false)
   if Utils.IsValidTarget(qTarget) then
-    if Combo or (not None and Menu.Get("ManaSlider") <= Player.ManaPercent * 100) then
+    if Combo or (Harass or Laneclear and Menu.Get("ManaSlider") <= Player.ManaPercent * 100) then
       if Utils.HasBuff(Player,CalibrumOn) and q1Ready then
         local qPred = Aphelios.Q1:GetPrediction(qTarget)
         if qPred and qPred.HitChanceEnum >= HitChanceEnum.High then
@@ -1064,8 +1075,71 @@ function Aphelios.LogicQ()
       end
       if Utils.HasBuff(Player,CrescendumOn) and q5Ready then
         local qPred = Aphelios.Q5:GetPrediction(qTarget)
-        if qPred and Aphelios.Q5:IsInRange(qTarget) and qPred.HitChanceEnum >= HitChanceEnum.High then
+        if qPred and Aphelios.Q5:IsInRange(qTarget) and qPred.HitChanceEnum >= HitChanceEnum.Low then
           if Aphelios.Q5:Cast(qPred.CastPosition) then return true end
+        end
+      end
+    end
+  end
+  return false
+end
+
+function Aphelios.Clear()
+  if Laneclear and Menu.Get("ManaSliderLane") <= Player.ManaPercent * 100 and Menu.Get("laneclearQ") then
+    for k, v in pairs(ObjectManager.GetNearby("enemy", "minions")) do
+      local minion = v.AsAI
+      if Utils.HasBuff(Player,CalibrumOn) and q1Ready then
+        local qPred = Aphelios.Q1:GetPrediction(minion)
+        if qPred then
+          if Aphelios.Q1:Cast(minion.Position) then return true end
+        end
+      end
+      if Utils.HasBuff(Player,SeverumOn) and q2Ready and Aphelios.Q2:IsInRange(minion) then
+        if Aphelios.Q2:Cast() then return true end
+      end
+      if Utils.HasBuff(Player,GravitumOn) and q3Ready then
+        if Utils.HasBuff(minion,GravitumDebuff) and Aphelios.Q3:IsInRange(minion) then
+          if Aphelios.Q3:Cast() then return true end
+        end
+      end
+      if Utils.HasBuff(Player,InfernumOn) and q4Ready then
+        local qPred = Aphelios.Q4:GetPrediction(minion)
+        local qPos , hitCount = Aphelios.Q4:GetBestCircularCastPos(ObjectManager.GetNearby("enemy", "minions"))
+        if qPred and Aphelios.Q4:IsInRange(minion) and qPred.HitChanceEnum >= HitChanceEnum.Low and hitCount >= 2 then
+          if Aphelios.Q4:Cast(qPos) then return true end
+        end
+      end
+      if Utils.HasBuff(Player,CrescendumOn) and q5Ready then
+        local qPred = Aphelios.Q5:GetPrediction(minion)
+        local qPos , hitCount = Aphelios.Q5:GetBestCircularCastPos(ObjectManager.GetNearby("enemy", "minions"))
+        if qPred and Aphelios.Q5:IsInRange(minion) and qPred.HitChanceEnum >= HitChanceEnum.Low and hitCount >= 1 then
+          if Aphelios.Q5:Cast(qPos) then return true end
+        end
+      end
+    end
+    for k, v in pairs(ObjectManager.GetNearby("neutral", "minions")) do
+      local minion = v.AsAI
+
+      if Utils.HasBuff(Player,SeverumOn) and q2Ready and Aphelios.Q2:IsInRange(minion) then
+        if Aphelios.Q2:Cast() then return true end
+      end
+      if Utils.HasBuff(Player,GravitumOn) and q3Ready then
+        if Utils.HasBuff(minion,GravitumDebuff) and Aphelios.Q3:IsInRange(minion) then
+          if Aphelios.Q3:Cast() then return true end
+        end
+      end
+      if Utils.HasBuff(Player,InfernumOn) and q4Ready then
+        local qPred = Aphelios.Q4:GetPrediction(minion)
+        local qPos , hitCount = Aphelios.Q4:GetBestCircularCastPos(ObjectManager.GetNearby("neutral", "minions"))
+        if qPred and Aphelios.Q4:IsInRange(minion) and qPred.HitChanceEnum >= HitChanceEnum.Low and hitCount >= 2 then
+          if Aphelios.Q4:Cast(qPos) then return true end
+        end
+      end
+      if Utils.HasBuff(Player,CrescendumOn) and q5Ready then
+        local qPred = Aphelios.Q5:GetPrediction(minion)
+        local qPos , hitCount = Aphelios.Q5:GetBestCircularCastPos(ObjectManager.GetNearby("neutral", "minions"))
+        if qPred and Aphelios.Q5:IsInRange(minion) and qPred.HitChanceEnum >= HitChanceEnum.Low and hitCount >= 1 then
+          if Aphelios.Q5:Cast(qPos) then return true end
         end
       end
     end
@@ -1103,6 +1177,13 @@ function Aphelios.OnProcessSpell(sender,spell)
   return false
 end
 
+function Aphelios.OnBuffGain(obj,buff)
+  if obj.IsEnemy then
+    if printf(buff.Name) then return false end
+  end
+  return false
+end
+
 function Aphelios.OnUpdate()
   if not Utils.IsGameAvailable() then return false end
   if Utils.NoLag(0) then
@@ -1111,14 +1192,23 @@ function Aphelios.OnUpdate()
     Aphelios.CheckMode()
     Aphelios.CheckGun()
   end
+  for k, v in pairs(ObjectManager.Get("enemy", "heroes")) do
+    local enemy = v.AsAI
+    if Utils.HasBuff(enemy,CalibrumDebuff) and enemy:Distance(Player.Position) < 1800 then
+      if Input.Attack(enemy) then return true end
+    end
+  end
   if Utils.NoLag(1) and Aphelios.W:IsReady() and Menu.Get("autoW") and (not BeforeAA and not Orbwalker.IsWindingUp()) then
     if Aphelios.LogicW() then return true end
   end
   if Utils.NoLag(2) and Menu.Get("autoR") then
     if Aphelios.LogicR() then return true end
   end
-  if Utils.NoLag(3) and Menu.Get("autoQ") and (not BeforeAA and not Orbwalker.IsWindingUp()) then
+  if Utils.NoLag(3) and Menu.Get("autoQ") and (not BeforeAA and not Orbwalker.IsWindingUp()) and Player.Level > 1 then
     if Aphelios.LogicQ() then return true end
+  end
+  if Utils.NoLag(4) then
+    if Aphelios.Clear() then return true end
   end
   local OrbwalkerMode = Orbwalker.GetMode()
   if OrbwalkerMode == "Combo" then
@@ -1131,7 +1221,7 @@ function Aphelios.OnUpdate()
   else
     Harass = false
   end
-  if OrbwalkerMode == "Waveclear" or OrbwalkerMode == "Lasthit" or OrbwalkerMode == "Harass" then
+  if OrbwalkerMode == "Waveclear" then
     Laneclear = true
   else
     Laneclear = false
@@ -1142,7 +1232,7 @@ function Aphelios.OnUpdate()
     None = false
   end
   iTick = iTick + 1
-  if iTick > 3 then
+  if iTick > 4 then
     iTick = 0
   end
   return false
@@ -1154,6 +1244,8 @@ function Aphelios.LoadMenu()
     Menu.ColoredText("> Q", 0xB65A94FF, true)
     Menu.Checkbox("autoQ", "Auto Q", true)
     Menu.Checkbox("harassQ", "Harass Q", true)
+    Menu.Checkbox("laneclearQ", "Laneclear Q", true)
+    Menu.Checkbox("jungleclearQ", "JungleClear Q", true)
     Menu.ColoredText("> W", 0x118AB2FF, true)
     Menu.Checkbox("autoW", "Auto W", true)
     Menu.ColoredText("> R", 0xB65A94FF, true)
@@ -1161,6 +1253,8 @@ function Aphelios.LoadMenu()
     Menu.ColoredText("Misc", 0xB65A94FC, true)
     Menu.ColoredText("Harass Mana Percent limit", 0xFFD700FF, true)
     Menu.Slider("ManaSlider","",50,0,100)
+    Menu.ColoredText("Waveclear Mana Percent limit", 0xFFD700FF, true)
+    Menu.Slider("ManaSliderLane","",50,0,100)
     end)
   end
   if Menu.RegisterMenu("Simple Aphelios", "Simple Aphelios", ApheliosMenu) then return true end
