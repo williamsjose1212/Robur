@@ -1166,13 +1166,6 @@ function Aphelios.OnProcessSpell(sender,spell)
   return false
 end
 
-function Aphelios.OnBuffGain(obj,buff)
-  if obj.IsEnemy then
-    if printf(buff.Name) then return false end
-  end
-  return false
-end
-
 function Aphelios.OnUpdate()
   if not Utils.IsGameAvailable() then return false end
   if Utils.NoLag(0) then
