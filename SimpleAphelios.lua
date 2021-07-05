@@ -567,19 +567,8 @@ function Aphelios.CheckGun()
 end
 
 function Aphelios.LogicW()
-  local qTarget = TS:GetTarget(Aphelios.Q1.Range)
+  local qTarget = TS:GetTarget(Aphelios.Q1.Range+500,false)
   if None or not Combo or not Harass then return false end
-  for k, v in pairs(ObjectManager.Get("enemy", "heroes")) do
-    local enemy = v.AsAI
-    if Utils.HasBuff(Player,GravitumOn) then
-      if Utils.HasBuff(enemy,GravitumDebuff) and Aphelios.Q3:IsInRange(enemy) then return false end
-    end
-    if Utils.HasBuff(Player,GravitumOff) then
-      if Utils.HasBuff(enemy,GravitumDebuff) then
-        if Aphelios.W:Cast() then return true end
-      end
-    end
-  end
   if Utils.IsValidTarget(qTarget) then
     if qTarget:Distance(Player.Position) > range then
       if q1Ready and Utils.HasBuff(Player,CalibrumOff) then
