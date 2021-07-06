@@ -568,7 +568,7 @@ end
 
 function Aphelios.LogicW()
   local qTarget = TS:GetTarget(Aphelios.Q1.Range+500,false)
-  if None or not Combo or not Harass then return false end
+  if None then return false end
   if Utils.IsValidTarget(qTarget) then
     if qTarget:Distance(Player.Position) > range then
       if q1Ready and Utils.HasBuff(Player,CalibrumOff) then
@@ -994,7 +994,7 @@ function Aphelios.LogicR()
           local rPred = Aphelios.R2:GetPrediction(rTarget)
           if rPred and rPred.HitChanceEnum >= HitChanceEnum.Medium then
             if hitCount >= 1 then
-              if target.Health < DamageLib.GetAutoAttackDamage(rTarget) * hitCount + Aphelios.R2:GetDamage(rTarget) then
+              if rTarget.Health < DamageLib.GetAutoAttackDamage(rTarget) * hitCount + Aphelios.R2:GetDamage(rTarget) then
                 if Utils.HasBuff(Player,InfernumOn) then
                   if Aphelios.R2:Cast(rPred.CastPosition) then return true end
                 else
@@ -1045,7 +1045,7 @@ function Aphelios.LogicQ()
           if Aphelios.Q1:Cast(qPred.CastPosition) then return true end
         end
       end
-      if Utils.HasBuff(Player,SeverumOn) and q2Ready and Utils.IsValidTarget(target) and Aphelios.Q2:IsInRange(target) then
+      if target ~= nil and Utils.HasBuff(Player,SeverumOn) and q2Ready and Utils.IsValidTarget(target) and Aphelios.Q2:IsInRange(target) then
         if Aphelios.Q2:Cast() then return true end
       end
       if Utils.HasBuff(Player,GravitumOn) and q3Ready then
@@ -1075,7 +1075,7 @@ end
 
 function Aphelios.Clear()
   if Laneclear and Menu.Get("ManaSliderLane") <= Player.ManaPercent * 100 and Menu.Get("laneclearQ") then
-    for k, v in pairs(ObjectManager.GetNearby("enemy", "minions")) do
+    for k, v in pairs(ObjectManager.GetNearby("neutral", "minions")) do
       local minion = v.AsAI
       if Utils.HasBuff(Player,CalibrumOn) and q1Ready then
         local qPred = Aphelios.Q1:GetPrediction(minion)
@@ -1083,32 +1083,6 @@ function Aphelios.Clear()
           if Aphelios.Q1:Cast(minion.Position) then return true end
         end
       end
-      if Utils.HasBuff(Player,SeverumOn) and q2Ready and Aphelios.Q2:IsInRange(minion) then
-        if Aphelios.Q2:Cast() then return true end
-      end
-      if Utils.HasBuff(Player,GravitumOn) and q3Ready then
-        if Utils.HasBuff(minion,GravitumDebuff) and Aphelios.Q3:IsInRange(minion) then
-          if Aphelios.Q3:Cast() then return true end
-        end
-      end
-      if Utils.HasBuff(Player,InfernumOn) and q4Ready then
-        local qPred = Aphelios.Q4:GetPrediction(minion)
-        local qPos , hitCount = Aphelios.Q4:GetBestCircularCastPos(ObjectManager.GetNearby("enemy", "minions"))
-        if qPred and Aphelios.Q4:IsInRange(minion) and qPred.HitChanceEnum >= HitChanceEnum.Low and hitCount >= 2 then
-          if Aphelios.Q4:Cast(qPos) then return true end
-        end
-      end
-      if Utils.HasBuff(Player,CrescendumOn) and q5Ready then
-        local qPred = Aphelios.Q5:GetPrediction(minion)
-        local qPos , hitCount = Aphelios.Q5:GetBestCircularCastPos(ObjectManager.GetNearby("enemy", "minions"))
-        if qPred and Aphelios.Q5:IsInRange(minion) and qPred.HitChanceEnum >= HitChanceEnum.Low and hitCount >= 1 then
-          if Aphelios.Q5:Cast(qPos) then return true end
-        end
-      end
-    end
-    for k, v in pairs(ObjectManager.GetNearby("neutral", "minions")) do
-      local minion = v.AsAI
-
       if Utils.HasBuff(Player,SeverumOn) and q2Ready and Aphelios.Q2:IsInRange(minion) then
         if Aphelios.Q2:Cast() then return true end
       end
@@ -1127,6 +1101,27 @@ function Aphelios.Clear()
       if Utils.HasBuff(Player,CrescendumOn) and q5Ready then
         local qPred = Aphelios.Q5:GetPrediction(minion)
         local qPos , hitCount = Aphelios.Q5:GetBestCircularCastPos(ObjectManager.GetNearby("neutral", "minions"))
+        if qPred and Aphelios.Q5:IsInRange(minion) and qPred.HitChanceEnum >= HitChanceEnum.Low and hitCount >= 1 then
+          if Aphelios.Q5:Cast(qPos) then return true end
+        end
+      end
+    end
+    for k, v in pairs(ObjectManager.GetNearby("enemy", "minions")) do
+      local minion = v.AsAI
+
+      if Utils.HasBuff(Player,SeverumOn) and q2Ready and Aphelios.Q2:IsInRange(minion) then
+        if Aphelios.Q2:Cast() then return true end
+      end
+      if Utils.HasBuff(Player,InfernumOn) and q4Ready then
+        local qPred = Aphelios.Q4:GetPrediction(minion)
+        local qPos , hitCount = Aphelios.Q4:GetBestCircularCastPos(ObjectManager.GetNearby("enemy", "minions"))
+        if qPred and Aphelios.Q4:IsInRange(minion) and qPred.HitChanceEnum >= HitChanceEnum.Low and hitCount >= 2 then
+          if Aphelios.Q4:Cast(qPos) then return true end
+        end
+      end
+      if Utils.HasBuff(Player,CrescendumOn) and q5Ready then
+        local qPred = Aphelios.Q5:GetPrediction(minion)
+        local qPos , hitCount = Aphelios.Q5:GetBestCircularCastPos(ObjectManager.GetNearby("enemy", "minions"))
         if qPred and Aphelios.Q5:IsInRange(minion) and qPred.HitChanceEnum >= HitChanceEnum.Low and hitCount >= 1 then
           if Aphelios.Q5:Cast(qPos) then return true end
         end
