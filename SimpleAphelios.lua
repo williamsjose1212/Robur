@@ -567,7 +567,7 @@ function Aphelios.CheckGun()
 end
 
 function Aphelios.LogicW()
-  local qTarget = TS:GetTarget(Aphelios.Q1.Range+500,false)
+  local qTarget = TS:GetTarget(Aphelios.Q1.Range+500)
   if None then return false end
   if Utils.IsValidTarget(qTarget) then
     if qTarget:Distance(Player.Position) > range then
@@ -1036,7 +1036,7 @@ function Aphelios.LogicR()
 end
 
 function Aphelios.LogicQ()
-  local qTarget = TS:GetTarget(Aphelios.Q1.Range,false)
+  local qTarget = TS:GetTarget(Aphelios.Q1.Range)
   if Utils.IsValidTarget(qTarget) then
     if Combo or (Harass or Laneclear and Menu.Get("ManaSlider") <= Player.ManaPercent * 100) then
       if Utils.HasBuff(Player,CalibrumOn) and q1Ready then
