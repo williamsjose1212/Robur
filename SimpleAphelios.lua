@@ -606,7 +606,7 @@ function Aphelios.LogicW()
           if Utils.HasBuff(Player,SeverumOn) and not Aphelios.Q2:IsInRange(qTarget) or not q2Ready then
             if Aphelios.W:Cast() then return true end
           end
-          if Utils.HasBuff(Player,GravitumOn) and (not Aphelios.Q3:IsInRange(qTarget) and not Utils.HasBuff(qTarget,GravitumDebuff)) or not q3Ready then
+          if Utils.HasBuff(Player,GravitumOn) and not Aphelios.Q3:IsReady() then
             if Aphelios.W:Cast() then return true end
           end
           if Utils.HasBuff(Player,InfernumOn) and not Aphelios.Q4:IsInRange(qTarget) or not q4Ready then
