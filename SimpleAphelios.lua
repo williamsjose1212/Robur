@@ -83,70 +83,70 @@ local Q3cd = 0
 local Q4cd = 0
 local Q5cd = 0
 Aphelios.Q1 = SpellLib.Skillshot({
-	Slot = SpellSlots.Q,
-	Range = 1450,
-	Delay = 0.4,
-	Speed = 1850,
-	 Collisions = {Minions = true, WindWall = true },
-	Radius = 100,
-	Type = "Linear",
-	Key = "Q"
+  Slot = SpellSlots.Q,
+  Range = 1450,
+  Delay = 0.4,
+  Speed = 1850,
+  Collisions = {Minions = true, WindWall = true },
+  Radius = 100,
+  Type = "Linear",
+  Key = "Q"
 })
 
 Aphelios.Q2 = SpellLib.Active({
   Slot = SpellSlots.Q,
   Range = 550,
-	Delay = 0.25,
+  Delay = 0.25,
   Key = "Q"
 })
 
 Aphelios.Q3 = SpellLib.Active({
   Slot = SpellSlots.Q,
-	Range = math_huge,
+  Range = math_huge,
   Key = "Q"
 })
 
 Aphelios.Q4 = SpellLib.Skillshot({
-	Slot = SpellSlots.Q,
-	Range = 650,
-	Delay = 0.4,
-	Radius = 300,
-	Type = "Linear",
-	Key = "Q"
+  Slot = SpellSlots.Q,
+  Range = 650,
+  Delay = 0.4,
+  Radius = 300,
+  Type = "Linear",
+  Key = "Q"
 })
 
 Aphelios.Q5 = SpellLib.Skillshot({
-	Slot = SpellSlots.Q,
-	Range = 475,
-	Delay = 1.0,
-	Radius = 500,
-	Type = "Circular",
-	Key = "Q"
+  Slot = SpellSlots.Q,
+  Range = 475,
+  Delay = 1.0,
+  Radius = 500,
+  Type = "Circular",
+  Key = "Q"
 })
 
 Aphelios.W = SpellLib.Active({
-	Slot = SpellSlots.W,
-	Key = "W"
+  Slot = SpellSlots.W,
+  Key = "W"
 })
 
 Aphelios.R1 = SpellLib.Skillshot({
-	Slot = SpellSlots.R,
-	Range = 1300,
-	Delay = 0.6,
-	Speed = 2000,
-	Radius = 150,
-	Type = "Linear",
-	Key = "R"
+  Slot = SpellSlots.R,
+  Range = 1300,
+  Delay = 0.6,
+  Speed = 2000,
+  Radius = 150,
+  Type = "Linear",
+  Key = "R"
 })
 
 Aphelios.R2 = SpellLib.Skillshot({
-	Slot = SpellSlots.R,
-	Range = 1300,
-	Delay = 0.6,
-	Speed = 2000,
-	Radius = 150,
-	Type = "Circular",
-	Key = "R"
+  Slot = SpellSlots.R,
+  Range = 1300,
+  Delay = 0.6,
+  Speed = 2000,
+  Radius = 150,
+  Type = "Circular",
+  Key = "R"
 })
 
 local Utils = {}
@@ -164,27 +164,27 @@ function Utils.SetMana()
     qMana = Aphelios.Q:GetManaCost()
   elseif (Player.Health/Player.MaxHealth) * 100 < 20 then
     qMana = 0
-	else
-		qMana = 0
+  else
+    qMana = 0
   end
   if Aphelios.W:IsReady() then
     wMana = Aphelios.W:GetManaCost()
-	elseif (Player.Health/Player.MaxHealth) * 100 < 20 then
-		wMana = 0
+  elseif (Player.Health/Player.MaxHealth) * 100 < 20 then
+    wMana = 0
   else
     wMana = 0
   end
   if Aphelios.E:IsReady() then
     eMana = Aphelios.E:GetManaCost()
-	elseif (Player.Health/Player.MaxHealth) * 100 < 20 then
-		eMana = 0
+  elseif (Player.Health/Player.MaxHealth) * 100 < 20 then
+    eMana = 0
   else
     eMana = 0
   end
   if Aphelios.R:IsReady() then
     rMana = Aphelios.R:GetManaCost()
-	elseif (Player.Health/Player.MaxHealth) * 100 < 20 then
-		rMana = 0
+  elseif (Player.Health/Player.MaxHealth) * 100 < 20 then
+    rMana = 0
   else
     rMana = 0
   end
@@ -319,29 +319,29 @@ function Utils.HasBuff(target,buffname)
 end
 
 function Utils.CanHit(target,spell)
-	if Utils.IsValidTarget(target) then
-		local pred = target:FastPrediction(spell.CastDelay)
-		if pred == nil then return false end
-		if spell.LineWidth > 0 then
-			local powCalc = (spell.LineWidth + hero.BoundingRadius)^2
-			if (pred:LineDistance(spell.StartPos,spell.EndPos,true) <= powCalc) or (target.Position:LineDistance(spell.StartPos,spell.EndPos,true) <= powCalc) then
-				return true
-			end
-		elseif target:Distance(spell.EndPos) < 50 + target.BoundingRadius or pred:Distance(spell.EndPos) < 50 + target.BoundingRadius then
-			return true
-		end
-	end
-	return false
+  if Utils.IsValidTarget(target) then
+    local pred = target:FastPrediction(spell.CastDelay)
+    if pred == nil then return false end
+    if spell.LineWidth > 0 then
+      local powCalc = (spell.LineWidth + hero.BoundingRadius)^2
+      if (pred:LineDistance(spell.StartPos,spell.EndPos,true) <= powCalc) or (target.Position:LineDistance(spell.StartPos,spell.EndPos,true) <= powCalc) then
+        return true
+      end
+    elseif target:Distance(spell.EndPos) < 50 + target.BoundingRadius or pred:Distance(spell.EndPos) < 50 + target.BoundingRadius then
+      return true
+    end
+  end
+  return false
 end
 
 function Utils.Sqrd(num)
-	return num*num
+  return num*num
 end
 
 function Utils.IsUnderTurret(target)
   local TurretRange = 562500
   local turrets = ObjectManager.GetNearby("enemy", "turrets")
-	for _, turret in ipairs(turrets) do
+  for _, turret in ipairs(turrets) do
     if turret.IsDead then return false end
     if target.Position:DistanceSqr(turret) < TurretRange + Utils.Sqrd(target.BoundingRadius) / 2 then
       return true
@@ -351,943 +351,943 @@ function Utils.IsUnderTurret(target)
 end
 
 function Utils.CanMove(target)
-	if Utils.HasBuffType(target,BuffTypes.Charm) or Utils.HasBuffType(target,BuffTypes.Snare) or target.MoveSpeed < 50 or Utils.HasBuffType(target,BuffTypes.Stun) or Utils.HasBuffType(target,BuffTypes.Suppression) or Utils.HasBuffType(target,BuffTypes.Taunt) or Utils.HasBuffType(target,BuffTypes.Fear) or Utils.HasBuffType(target,BuffTypes.Knockup) or Utils.HasBuffType(target,BuffTypes.Knockback) then
-		return false
-	else
-		return true
-	end
+  if Utils.HasBuffType(target,BuffTypes.Charm) or Utils.HasBuffType(target,BuffTypes.Snare) or target.MoveSpeed < 50 or Utils.HasBuffType(target,BuffTypes.Stun) or Utils.HasBuffType(target,BuffTypes.Suppression) or Utils.HasBuffType(target,BuffTypes.Taunt) or Utils.HasBuffType(target,BuffTypes.Fear) or Utils.HasBuffType(target,BuffTypes.Knockup) or Utils.HasBuffType(target,BuffTypes.Knockback) then
+    return false
+  else
+    return true
+  end
 end
 
 function Utils.NoLag(tick)
-	if (iTick == tick) then
-		return true 
-	else
-		return false
-	end
+  if (iTick == tick) then
+    return true
+  else
+    return false
+  end
 end
 
 function Utils.GetRDmg(target)
 
-	local playerAI = Player.AsAI
-	local dmgR = 75 + 50 * Player:GetSpell(SpellSlots.R).Level
-	local bonusDmg = playerAI.BonusAD * 0.2 + playerAI.TotalAP
-	local extraDmg = Player.TotalAD
-	local calibrumDmg = 0
-	local infernumDmg = 0
+  local playerAI = Player.AsAI
+  local dmgR = 75 + 50 * Player:GetSpell(SpellSlots.R).Level
+  local bonusDmg = playerAI.BonusAD * 0.2 + playerAI.TotalAP
+  local extraDmg = Player.TotalAD
+  local calibrumDmg = 0
+  local infernumDmg = 0
 
-	if Utils.HasBuff(Player,CalibrumOn) then
+  if Utils.HasBuff(Player,CalibrumOn) then
 
-		calibrumDmg = (20 + 30 * Player:GetSpell(SpellSlots.R).Level) * CalibrumMarks
-	end
+    calibrumDmg = (20 + 30 * Player:GetSpell(SpellSlots.R).Level) * CalibrumMarks
+  end
 
-	if Utils.HasBuff(Player,InfernumOn) then
-		infernumDmg = 50 * Player:GetSpell(SpellSlots.R).Level + playerAI.BonusAD * 0.25
-	end
+  if Utils.HasBuff(Player,InfernumOn) then
+    infernumDmg = 50 * Player:GetSpell(SpellSlots.R).Level + playerAI.BonusAD * 0.25
+  end
 
-	local totalDmg = dmgR + bonusDmg + extraDmg + calibrumDmg + infernumDmg
+  local totalDmg = dmgR + bonusDmg + extraDmg + calibrumDmg + infernumDmg
 
-	return DamageLib.CalculatePhysicalDamage(Player, target, totalDmg)
+  return DamageLib.CalculatePhysicalDamage(Player, target, totalDmg)
 
 end
 
 function Aphelios.PlayerLevel()
-	if Player.Level == nil then
-		return 0
-	end
-	if Player.Level >= 13 then
-		return 7
-	end
-	if Player.Level >= 11 then
-		return 6
-	end
-	if Player.Level >= 9 then
-		return 5
-	end
-	if Player.Level >= 7 then
-		return 4
-	end
-	if Player.Level >= 5 then
-		return 3
-	end
-	if Player.Level >= 3 then
-		return 2
-	end
-	if Player.Level > 1 then
-		return 1
-	end
-	return 0
+  if Player.Level == nil then
+    return 0
+  end
+  if Player.Level >= 13 then
+    return 7
+  end
+  if Player.Level >= 11 then
+    return 6
+  end
+  if Player.Level >= 9 then
+    return 5
+  end
+  if Player.Level >= 7 then
+    return 4
+  end
+  if Player.Level >= 5 then
+    return 3
+  end
+  if Player.Level >= 3 then
+    return 2
+  end
+  if Player.Level > 1 then
+    return 1
+  end
+  return 0
 end
 
 function Aphelios.CheckCd()
-	if Player.Level == 1 or Player.Mana < 60 then return end
-	if (Game.GetTime() - lastCalibrum > Q1cd) then
-		q1Ready = true
-	else
-		q1Ready = false
-	end
-	if (Game.GetTime() - lastSeverum > Q2cd ) then
-		q2Ready = true
-	else
-		q2Ready = false
-	end
-	if (Game.GetTime() - lastGravitum > Q3cd ) then
-		q3Ready = true
-	else
-		q3Ready = false
-	end
-	if (Game.GetTime() - lastInfernum > Q4cd ) then
-		q4Ready = true
-	else
-		q4Ready = false
-	end
-	if (Game.GetTime() - lastCrescendum > Q5cd ) then
-		q5Ready = true
-	else
-		q5Ready = false
-	end
-	return false
+  if Player.Level == 1 or Player.Mana < 60 then return end
+  if (Game.GetTime() - lastCalibrum > Q1cd) then
+    q1Ready = true
+  else
+    q1Ready = false
+  end
+  if (Game.GetTime() - lastSeverum > Q2cd ) then
+    q2Ready = true
+  else
+    q2Ready = false
+  end
+  if (Game.GetTime() - lastGravitum > Q3cd ) then
+    q3Ready = true
+  else
+    q3Ready = false
+  end
+  if (Game.GetTime() - lastInfernum > Q4cd ) then
+    q4Ready = true
+  else
+    q4Ready = false
+  end
+  if (Game.GetTime() - lastCrescendum > Q5cd ) then
+    q5Ready = true
+  else
+    q5Ready = false
+  end
+  return false
 end
 
 function Aphelios.GetQ1CD()
-	if Player.Level == 1 then
-		return math_huge
-	end
-	local list = {math_huge,10,9.67,9.33,9,8.67,8.33,8}
-	
-	return list[Aphelios.PlayerLevel()] - list[Aphelios.PlayerLevel()]*Player.PercentCooldownMod
+  if Player.Level == 1 then
+    return math_huge
+  end
+  local list = {math_huge,10,9.67,9.33,9,8.67,8.33,8}
+
+  return list[Aphelios.PlayerLevel()] - list[Aphelios.PlayerLevel()]*Player.PercentCooldownMod
 end
 
 function Aphelios.GetQ2CD()
-	if Player.Level == 1 then
-		return math_huge
-	end
-	local list = {math_huge,10,9.67,9.33,9,8.67,8.33,8}
-	
-	return list[Aphelios.PlayerLevel()] - list[Aphelios.PlayerLevel()]*Player.PercentCooldownMod
+  if Player.Level == 1 then
+    return math_huge
+  end
+  local list = {math_huge,10,9.67,9.33,9,8.67,8.33,8}
+
+  return list[Aphelios.PlayerLevel()] - list[Aphelios.PlayerLevel()]*Player.PercentCooldownMod
 end
 function Aphelios.GetQ3CD()
-	if Player.Level == 1 then
-		return math_huge
-	end
-	local list = {math_huge,12,11.67,11.33,11,10.67,10.33,10}
-	
-	return list[Aphelios.PlayerLevel()] - list[Aphelios.PlayerLevel()]*Player.PercentCooldownMod 
+  if Player.Level == 1 then
+    return math_huge
+  end
+  local list = {math_huge,12,11.67,11.33,11,10.67,10.33,10}
+
+  return list[Aphelios.PlayerLevel()] - list[Aphelios.PlayerLevel()]*Player.PercentCooldownMod
 end
 
 function Aphelios.GetQ4CD()
-	if Player.Level == 1 then
-		return math_huge
-	end
-	local list = {math_huge,9,8.5,8,7.5,7,6.5,6}
-	
-	return list[Aphelios.PlayerLevel()] - list[Aphelios.PlayerLevel()]*Player.PercentCooldownMod
+  if Player.Level == 1 then
+    return math_huge
+  end
+  local list = {math_huge,9,8.5,8,7.5,7,6.5,6}
+
+  return list[Aphelios.PlayerLevel()] - list[Aphelios.PlayerLevel()]*Player.PercentCooldownMod
 end
 
 function Aphelios.GetQ5CD()
-	if Player.Level == 1 then
-		return math_huge
-	end
-	local list = {math_huge,9,8.5,8,7.5,7,6.5,6}
-	
-	return list[Aphelios.PlayerLevel()] - list[Aphelios.PlayerLevel()]*Player.PercentCooldownMod 
+  if Player.Level == 1 then
+    return math_huge
+  end
+  local list = {math_huge,9,8.5,8,7.5,7,6.5,6}
+
+  return list[Aphelios.PlayerLevel()] - list[Aphelios.PlayerLevel()]*Player.PercentCooldownMod
 end
 
 function Aphelios.CheckMode()
-	if Utils.HasBuff(Player,CalibrumOn) then
-		range = Orbwalker.GetTrueAutoAttackRange(Player)-100
-	else
-		range = Orbwalker.GetTrueAutoAttackRange(Player)
-	end
-	target = TS:GetTarget(Orbwalker.GetTrueAutoAttackRange(Player)+600)
-	if Utils.IsValidTarget(TS:GetTarget(range/1.5)) and (Player.Health/Player.MaxHealth) * 100 >= 60 and not LowHp then
-		CloseRange = true
-	else
-		CloseRange = false
-	end
-	
-	if Utils.IsValidTarget(target) and Player:Distance(target.Position) > range and not CloseRange then
-		OutRange = true
-	else
-		OutRange = false
-	end
-	if Utils.IsValidTarget(TS:GetTarget(range)) and (Player.Health/Player.MaxHealth) * 100 < 60 and not CloseRange and not OutRange then
-		LowHp = true
-	else
-		LowHp = false
-	end
-	return false
+  if Utils.HasBuff(Player,CalibrumOn) then
+    range = Orbwalker.GetTrueAutoAttackRange(Player)-100
+  else
+    range = Orbwalker.GetTrueAutoAttackRange(Player)
+  end
+  target = TS:GetTarget(Orbwalker.GetTrueAutoAttackRange(Player)+600)
+  if Utils.IsValidTarget(TS:GetTarget(range/1.5)) and (Player.Health/Player.MaxHealth) * 100 >= 60 and not LowHp then
+    CloseRange = true
+  else
+    CloseRange = false
+  end
+
+  if Utils.IsValidTarget(target) and Player:Distance(target.Position) > range and not CloseRange then
+    OutRange = true
+  else
+    OutRange = false
+  end
+  if Utils.IsValidTarget(TS:GetTarget(range)) and (Player.Health/Player.MaxHealth) * 100 < 60 and not CloseRange and not OutRange then
+    LowHp = true
+  else
+    LowHp = false
+  end
+  return false
 end
 
 function Aphelios.CheckR()
-	if Player.Level == 1 or Player.Mana < 100 then return end
-	if Utils.HasBuff(Player,CalibrumOff) or Utils.HasBuff(Player,CalibrumOn) then
-		r1Ready = true
-	else
-		r1Ready = false
-	end
-	if Utils.HasBuff(Player,SeverumOff) or Utils.HasBuff(Player,SeverumOn) then
-		r2Ready = true
-	else
-		r2Ready = false
-	end
-	if Utils.HasBuff(Player,GravitumOff) or Utils.HasBuff(Player,GravitumOn) then
-		r3Ready = true
-	else
-		r3Ready = false
-	end
-	if Utils.HasBuff(Player,InfernumOff) or Utils.HasBuff(Player,InfernumOn) then
-		r4Ready = true
-	else
-		r4Ready = false
-	end
-	if Utils.HasBuff(Player,CrescendumOff) or Utils.HasBuff(Player,CrescendumOn) then
-		r5Ready = true
-	else
-		r5Ready = false
-	end
-	return false
+  if Player.Level == 1 or Player.Mana < 100 then return end
+  if Utils.HasBuff(Player,CalibrumOff) or Utils.HasBuff(Player,CalibrumOn) then
+    r1Ready = true
+  else
+    r1Ready = false
+  end
+  if Utils.HasBuff(Player,SeverumOff) or Utils.HasBuff(Player,SeverumOn) then
+    r2Ready = true
+  else
+    r2Ready = false
+  end
+  if Utils.HasBuff(Player,GravitumOff) or Utils.HasBuff(Player,GravitumOn) then
+    r3Ready = true
+  else
+    r3Ready = false
+  end
+  if Utils.HasBuff(Player,InfernumOff) or Utils.HasBuff(Player,InfernumOn) then
+    r4Ready = true
+  else
+    r4Ready = false
+  end
+  if Utils.HasBuff(Player,CrescendumOff) or Utils.HasBuff(Player,CrescendumOn) then
+    r5Ready = true
+  else
+    r5Ready = false
+  end
+  return false
 end
 
 function Aphelios.CheckGun()
-	for k, v in pairs(ObjectManager.Get("enemy", "heroes")) do
-		local enemy = v.AsAI
-		if Utils.IsValidTarget(enemy) then
-			if Utils.HasBuff(Player,CalibrumOn) then
-				if Aphelios.Q1:IsInRange(enemy) then
-					local qPred = Aphelios.Q1:GetPrediction(enemy)
-					if qPred and qPred.HitChanceEnum >= HitChanceEnum.High and q1Ready then
-						w1 = false
-					else
-						w1 = true
-					end
-				end
-			end
-			if Utils.HasBuff(Player,SeverumOn) then
-				if Aphelios.Q2:IsInRange(enemy) and q2Ready then
-					w2 = false
-				else
-					w2 = true
-				end
-			end
-			if Utils.HasBuff(Player,GravitumOn) then
-				if Aphelios.Q3:IsInRange(enemy) and q3Ready and Utils.HasBuff(enemy,GravitumDebuff) then
-					w3 = false
-				else
-					w3 = true
-				end
-			end
-			if Utils.HasBuff(Player,InfernumOn) then
-				if Aphelios.Q4:IsInRange(enemy) and q4Ready then
-					w4 = false
-				else
-					w4 = true
-				end
-			end
-			if Utils.HasBuff(Player,CrescendumOn) then
-				if Player:Distance(enemy.Position) <= Aphelios.Q5.Range+200 and q5Ready then
-					w5 = false
-				else
-					w5 = true
-				end
-			end
-		end
-	end
-	return false
+  for k, v in pairs(ObjectManager.Get("enemy", "heroes")) do
+    local enemy = v.AsAI
+    if Utils.IsValidTarget(enemy) then
+      if Utils.HasBuff(Player,CalibrumOn) then
+        if Aphelios.Q1:IsInRange(enemy) then
+          local qPred = Aphelios.Q1:GetPrediction(enemy)
+          if qPred and qPred.HitChanceEnum >= HitChanceEnum.High and q1Ready then
+            w1 = false
+          else
+            w1 = true
+          end
+        end
+      end
+      if Utils.HasBuff(Player,SeverumOn) then
+        if Aphelios.Q2:IsInRange(enemy) and q2Ready then
+          w2 = false
+        else
+          w2 = true
+        end
+      end
+      if Utils.HasBuff(Player,GravitumOn) then
+        if Aphelios.Q3:IsInRange(enemy) and q3Ready and Utils.HasBuff(enemy,GravitumDebuff) then
+          w3 = false
+        else
+          w3 = true
+        end
+      end
+      if Utils.HasBuff(Player,InfernumOn) then
+        if Aphelios.Q4:IsInRange(enemy) and q4Ready then
+          w4 = false
+        else
+          w4 = true
+        end
+      end
+      if Utils.HasBuff(Player,CrescendumOn) then
+        if Player:Distance(enemy.Position) <= Aphelios.Q5.Range+200 and q5Ready then
+          w5 = false
+        else
+          w5 = true
+        end
+      end
+    end
+  end
+  return false
 end
 
 function Aphelios.LogicW()
-	local qTarget = TS:GetTarget(Aphelios.Q1.Range+500)
-	if None then return false end
-	if Utils.IsValidTarget(qTarget) then
-		if qTarget:Distance(Player.Position) > range then
-			if q1Ready and Utils.HasBuff(Player,CalibrumOff) then
-				local qPred = Aphelios.Q1:GetPrediction(qTarget)
-				if qPred and qPred.HitChanceEnum >= HitChanceEnum.High and q1Ready then
-					if Utils.HasBuff(Player,SeverumOn) and not Aphelios.Q2:IsInRange(qTarget) or not q2Ready then
-						if Aphelios.W:Cast() then return true end
-					end
-					if Utils.HasBuff(Player,GravitumOn) and (not Aphelios.Q3:IsInRange(qTarget) and not Utils.HasBuff(qTarget,GravitumDebuff)) or not q3Ready then
-						if Aphelios.W:Cast() then return true end
-					end
-					if Utils.HasBuff(Player,InfernumOn) and not Aphelios.Q4:IsInRange(qTarget) or not q4Ready then
-						if Aphelios.W:Cast() then return true end
-					end
-					if Utils.HasBuff(Player,CrescendumOn) and not Utils.IsValidTarget(TS:GetTarget(600)) or not q5Ready then
-						if Aphelios.W:Cast() then return true end
-					end
-				end
-			end
-		end
-		if qTarget:Distance(Player.Position) <= range then
-			if q2Ready and Utils.HasBuff(Player,SeverumOff) then
-				if Utils.HasBuff(Player,CalibrumOn) then
-					local qPred = Aphelios.Q1:GetPrediction(qTarget)
-					if (not qPred or qPred.HitChanceEnum < HitChanceEnum.High) or not q1Ready then
-						if Aphelios.W:Cast() then return true end
-					end
-				end
-				if Utils.HasBuff(Player,GravitumOn) and not Aphelios.Q3:IsReady() then
-					if Aphelios.W:Cast() then return true end
-				end
-				if Utils.HasBuff(Player,InfernumOn) and not Aphelios.Q4:IsInRange(qTarget) or not q4Ready then
-					if Aphelios.W:Cast() then return true end
-				end
-				if Utils.HasBuff(Player,CrescendumOn) and not Utils.IsValidTarget(TS:GetTarget(600)) or not q5Ready then
-					if Aphelios.W:Cast() then return true end
-				end
-			end
-			if q3Ready and Utils.HasBuff(Player,GravitumOff) and not Utils.HasBuff(qTarget,GravitumDebuff) then
-				if Utils.HasBuff(Player,CalibrumOn) then
-					local qPred = Aphelios.Q1:GetPrediction(qTarget)
-					if (not qPred or qPred.HitChanceEnum < HitChanceEnum.High) or not q1Ready then
-						if Aphelios.W:Cast() then return true end
-					end
-				end
-				if Utils.HasBuff(Player,SeverumOn) and not Aphelios.Q2:IsInRange(qTarget) or not q2Ready then
-					if Aphelios.W:Cast() then return true end
-				end
-				if Utils.HasBuff(Player,InfernumOn) and not Aphelios.Q4:IsInRange(qTarget) or not q4Ready then
-					if Aphelios.W:Cast() then return true end
-				end
-				if Utils.HasBuff(Player,CrescendumOn) and not Utils.IsValidTarget(TS:GetTarget(600)) or not q5Ready then
-					if Aphelios.W:Cast() then return true end
-				end
-			end
-			if q4Ready and Utils.HasBuff(Player,InfernumOff) then
-				if Utils.HasBuff(Player,CalibrumOn) then
-					local qPred = Aphelios.Q1:GetPrediction(qTarget)
-					if (not qPred or qPred.HitChanceEnum < HitChanceEnum.High) or not q1Ready then
-						if Aphelios.W:Cast() then return true end
-					end
-				end
-				if Utils.HasBuff(Player,SeverumOn) and not Aphelios.Q2:IsInRange(qTarget) or not q2Ready then
-					if Aphelios.W:Cast() then return true end
-				end
-				if Utils.HasBuff(Player,GravitumOn) and not Aphelios.Q3:IsReady()then
-					if Aphelios.W:Cast() then return true end
-				end
-				if Utils.HasBuff(Player,CrescendumOn) and not Utils.IsValidTarget(TS:GetTarget(600)) or not q5Ready then
-					if Aphelios.W:Cast() then return true end
-				end
-			end
-			if q5Ready and Utils.HasBuff(Player,CrescendumOff) then
-				if Utils.HasBuff(Player,CalibrumOn) then
-					local qPred = Aphelios.Q1:GetPrediction(qTarget)
-					if (not qPred or qPred.HitChanceEnum < HitChanceEnum.High) or not q1Ready then
-						if Aphelios.W:Cast() then return true end
-					end
-				end
-				if Utils.HasBuff(Player,SeverumOn) and not Aphelios.Q2:IsInRange(qTarget) or not q2Ready then
-					if Aphelios.W:Cast() then return true end
-				end
-				if Utils.HasBuff(Player,InfernumOn) and not Aphelios.Q4:IsInRange(qTarget) or not q4Ready then
-					if Aphelios.W:Cast() then return true end
-				end
-				if Utils.HasBuff(Player,GravitumOn) and not Aphelios.Q3:IsReady() then
-					if Aphelios.W:Cast() then return true end
-				end
-			end
-		end
-	end
-	if OutRange then
-		if Utils.HasBuff(Player,CalibrumOff) then
-			if Utils.HasBuff(Player,SeverumOn) and w2 then
-				if Aphelios.W:Cast() then return true end
-			end
-			if Utils.HasBuff(Player,GravitumOn) and w3 then
-				if Aphelios.W:Cast() then return true end
-			end
-			if Utils.HasBuff(Player,InfernumOn) and w4 then
-				if Aphelios.W:Cast() then return true end
-			end
-			if Utils.HasBuff(Player,CrescendumOn) and w5 then
-				if Aphelios.W:Cast() then return true end
-			end
-		end
-		if Utils.HasBuff(Player,SeverumOff) then
-			if Utils.HasBuff(Player,InfernumOn) and w4 then
-				if Aphelios.W:Cast() then return true end
-			end
-			if Utils.HasBuff(Player,CrescendumOn) and w5 then
-				if Aphelios.W:Cast() then return true end
-			end
-		end
-		if Utils.HasBuff(Player,GravitumOff) then
-			if Utils.HasBuff(Player,SeverumOn) and w2 then
-				if Aphelios.W:Cast() then return true end
-			end
-			if Utils.HasBuff(Player,InfernumOn) and w4 then
-				if Aphelios.W:Cast() then return true end
-			end
-			if Utils.HasBuff(Player,CrescendumOn) and w5 then
-				if Aphelios.W:Cast() then return true end
-			end
-		end
-		if Utils.HasBuff(Player,InfernumOff) then
-			if Utils.HasBuff(Player,CrescendumOn) and w5 then
-				if Aphelios.W:Cast() then return true end
-			end
-		end
-	end
-	if LowHp then
-		if Utils.HasBuff(Player,SeverumOff) then
-			if Utils.HasBuff(Player,CalibrumOn) and w1 then
-				if Aphelios.W:Cast() then return true end
-			end
-			if Utils.HasBuff(Player,GravitumOn) and w3 then
-				if Aphelios.W:Cast() then return true end
-			end
-			if Utils.HasBuff(Player,InfernumOn) and w4 then
-				if Aphelios.W:Cast() then return true end
-			end
-			if Utils.HasBuff(Player,CrescendumOn) and w5 then
-				if Aphelios.W:Cast() then return true end
-			end
-		end
-		if Utils.HasBuff(Player,GravitumOff) then
-			if Utils.HasBuff(Player,CalibrumOn) and w1 then
-				if Aphelios.W:Cast() then return true end
-			end
-			if Utils.HasBuff(Player,InfernumOn) and w4 then
-				if Aphelios.W:Cast() then return true end
-			end
-			if Utils.HasBuff(Player,CrescendumOn) and w5 then
-				if Aphelios.W:Cast() then return true end
-			end
-		end
-		if Utils.HasBuff(Player,CrescendumOff) then
-			if Utils.HasBuff(Player,InfernumOn) and w4 then
-				if Aphelios.W:Cast() then return true end
-			end
-			if Utils.HasBuff(Player,CalibrumOn) and w1 then
-				if Aphelios.W:Cast() then return true end
-			end
-		end
-		if Utils.HasBuff(Player,InfernumOff) then
-			if Utils.HasBuff(Player,CalibrumOn) and w1 then
-				if Aphelios.W:Cast() then return true end
-			end
-		end
-	end
-	if CloseRange then
-		if Utils.HasBuff(Player,CrescendumOff) then
-			if Utils.HasBuff(Player,CalibrumOn) and w1 then
-				if Aphelios.W:Cast() then return true end
-			end
-			if Utils.HasBuff(Player,SeverumOn) and w2 then
-				if Aphelios.W:Cast() then return true end
-			end
-			if Utils.HasBuff(Player,GravitumOn) and w3 then
-				if Aphelios.W:Cast() then return true end
-			end
-			if Utils.HasBuff(Player,InfernumOn) and w4 then
-				if Aphelios.W:Cast() then return true end
-			end
-		end
-		if Utils.HasBuff(Player,GravitumOff) then
-			if Utils.HasBuff(Player,CalibrumOn) and w1 then
-				if Aphelios.W:Cast() then return true end
-			end
-			if Utils.HasBuff(Player,SeverumOn) and w2 then
-				if Aphelios.W:Cast() then return true end
-			end
-			if Utils.HasBuff(Player,InfernumOn) and w4 then
-				if Aphelios.W:Cast() then return true end
-			end
-		end
-		if Utils.HasBuff(Player,SeverumOff) then
-			if Utils.HasBuff(Player,CalibrumOn) and w1 then
-				if Aphelios.W:Cast() then return true end
-			end
-			if Utils.HasBuff(Player,InfernumOn) and w4 then
-				if Aphelios.W:Cast() then return true end
-			end
-		end
-		if Utils.HasBuff(Player,InfernumOff) then
-			if Utils.HasBuff(Player,CalibrumOn) and w1 then
-				if Aphelios.W:Cast() then return true end
-			end
-		end
-	end
-	if target ~= nil and (Player.Health/Player.MaxHealth) * 100 >= 60 and target:Distance(Player.Position) > range/1.5 and Utils.IsValidTarget(TS:GetTarget(range)) then
-		if Utils.HasBuff(Player,InfernumOff) then
-			if Utils.HasBuff(Player,CalibrumOn) and w1 then
-				if Aphelios.W:Cast() then return true end
-			end
-			if Utils.HasBuff(Player,SeverumOn) and w2 then
-				if Aphelios.W:Cast() then return true end
-			end
-			if Utils.HasBuff(Player,GravitumOn) and w3 then
-				if Aphelios.W:Cast() then return true end
-			end
-			if Utils.HasBuff(Player,CrescendumOn) and w5 then
-				if Aphelios.W:Cast() then return true end
-			end
-		end
-		if Utils.HasBuff(Player,CrescendumOff) then
-			if Utils.HasBuff(Player,CalibrumOn) and w1 then
-				if Aphelios.W:Cast() then return true end
-			end
-			if Utils.HasBuff(Player,SeverumOn) and w2 then
-				if Aphelios.W:Cast() then return true end
-			end
-			if Utils.HasBuff(Player,GravitumOn) and w3 then
-				if Aphelios.W:Cast() then return true end
-			end
-		end
-		if Utils.HasBuff(Player,GravitumOff) then
-			if Utils.HasBuff(Player,CalibrumOn) and w1 then
-				if Aphelios.W:Cast() then return true end
-			end
-			if Utils.HasBuff(Player,SeverumOn) and w2 then
-				if Aphelios.W:Cast() then return true end
-			end
-		end
-		if Utils.HasBuff(Player,CalibrumOff) then
-			if Utils.HasBuff(Player,SeverumOn) and w2 then
-				if Aphelios.W:Cast() then return true end
-			end
-		end
-	end
-	return false
+  local qTarget = TS:GetTarget(Aphelios.Q1.Range+500)
+  if None then return false end
+  if Utils.IsValidTarget(qTarget) then
+    if qTarget:Distance(Player.Position) > range then
+      if q1Ready and Utils.HasBuff(Player,CalibrumOff) then
+        local qPred = Aphelios.Q1:GetPrediction(qTarget)
+        if qPred and qPred.HitChanceEnum >= HitChanceEnum.High and q1Ready then
+          if Utils.HasBuff(Player,SeverumOn) and not Aphelios.Q2:IsInRange(qTarget) or not q2Ready then
+            if Aphelios.W:Cast() then return true end
+          end
+          if Utils.HasBuff(Player,GravitumOn) and (not Aphelios.Q3:IsInRange(qTarget) and not Utils.HasBuff(qTarget,GravitumDebuff)) or not q3Ready then
+            if Aphelios.W:Cast() then return true end
+          end
+          if Utils.HasBuff(Player,InfernumOn) and not Aphelios.Q4:IsInRange(qTarget) or not q4Ready then
+            if Aphelios.W:Cast() then return true end
+          end
+          if Utils.HasBuff(Player,CrescendumOn) and not Utils.IsValidTarget(TS:GetTarget(600)) or not q5Ready then
+            if Aphelios.W:Cast() then return true end
+          end
+        end
+      end
+    end
+    if qTarget:Distance(Player.Position) <= range then
+      if q2Ready and Utils.HasBuff(Player,SeverumOff) then
+        if Utils.HasBuff(Player,CalibrumOn) then
+          local qPred = Aphelios.Q1:GetPrediction(qTarget)
+          if (not qPred or qPred.HitChanceEnum < HitChanceEnum.High) or not q1Ready then
+            if Aphelios.W:Cast() then return true end
+          end
+        end
+        if Utils.HasBuff(Player,GravitumOn) and not Aphelios.Q3:IsReady() then
+          if Aphelios.W:Cast() then return true end
+        end
+        if Utils.HasBuff(Player,InfernumOn) and not Aphelios.Q4:IsInRange(qTarget) or not q4Ready then
+          if Aphelios.W:Cast() then return true end
+        end
+        if Utils.HasBuff(Player,CrescendumOn) and not Utils.IsValidTarget(TS:GetTarget(600)) or not q5Ready then
+          if Aphelios.W:Cast() then return true end
+        end
+      end
+      if q3Ready and Utils.HasBuff(Player,GravitumOff) and not Utils.HasBuff(qTarget,GravitumDebuff) then
+        if Utils.HasBuff(Player,CalibrumOn) then
+          local qPred = Aphelios.Q1:GetPrediction(qTarget)
+          if (not qPred or qPred.HitChanceEnum < HitChanceEnum.High) or not q1Ready then
+            if Aphelios.W:Cast() then return true end
+          end
+        end
+        if Utils.HasBuff(Player,SeverumOn) and not Aphelios.Q2:IsInRange(qTarget) or not q2Ready then
+          if Aphelios.W:Cast() then return true end
+        end
+        if Utils.HasBuff(Player,InfernumOn) and not Aphelios.Q4:IsInRange(qTarget) or not q4Ready then
+          if Aphelios.W:Cast() then return true end
+        end
+        if Utils.HasBuff(Player,CrescendumOn) and not Utils.IsValidTarget(TS:GetTarget(600)) or not q5Ready then
+          if Aphelios.W:Cast() then return true end
+        end
+      end
+      if q4Ready and Utils.HasBuff(Player,InfernumOff) then
+        if Utils.HasBuff(Player,CalibrumOn) then
+          local qPred = Aphelios.Q1:GetPrediction(qTarget)
+          if (not qPred or qPred.HitChanceEnum < HitChanceEnum.High) or not q1Ready then
+            if Aphelios.W:Cast() then return true end
+          end
+        end
+        if Utils.HasBuff(Player,SeverumOn) and not Aphelios.Q2:IsInRange(qTarget) or not q2Ready then
+          if Aphelios.W:Cast() then return true end
+        end
+        if Utils.HasBuff(Player,GravitumOn) and not Aphelios.Q3:IsReady()then
+          if Aphelios.W:Cast() then return true end
+        end
+        if Utils.HasBuff(Player,CrescendumOn) and not Utils.IsValidTarget(TS:GetTarget(600)) or not q5Ready then
+          if Aphelios.W:Cast() then return true end
+        end
+      end
+      if q5Ready and Utils.HasBuff(Player,CrescendumOff) then
+        if Utils.HasBuff(Player,CalibrumOn) then
+          local qPred = Aphelios.Q1:GetPrediction(qTarget)
+          if (not qPred or qPred.HitChanceEnum < HitChanceEnum.High) or not q1Ready then
+            if Aphelios.W:Cast() then return true end
+          end
+        end
+        if Utils.HasBuff(Player,SeverumOn) and not Aphelios.Q2:IsInRange(qTarget) or not q2Ready then
+          if Aphelios.W:Cast() then return true end
+        end
+        if Utils.HasBuff(Player,InfernumOn) and not Aphelios.Q4:IsInRange(qTarget) or not q4Ready then
+          if Aphelios.W:Cast() then return true end
+        end
+        if Utils.HasBuff(Player,GravitumOn) and not Aphelios.Q3:IsReady() then
+          if Aphelios.W:Cast() then return true end
+        end
+      end
+    end
+  end
+  if OutRange then
+    if Utils.HasBuff(Player,CalibrumOff) then
+      if Utils.HasBuff(Player,SeverumOn) and w2 then
+        if Aphelios.W:Cast() then return true end
+      end
+      if Utils.HasBuff(Player,GravitumOn) and w3 then
+        if Aphelios.W:Cast() then return true end
+      end
+      if Utils.HasBuff(Player,InfernumOn) and w4 then
+        if Aphelios.W:Cast() then return true end
+      end
+      if Utils.HasBuff(Player,CrescendumOn) and w5 then
+        if Aphelios.W:Cast() then return true end
+      end
+    end
+    if Utils.HasBuff(Player,SeverumOff) then
+      if Utils.HasBuff(Player,InfernumOn) and w4 then
+        if Aphelios.W:Cast() then return true end
+      end
+      if Utils.HasBuff(Player,CrescendumOn) and w5 then
+        if Aphelios.W:Cast() then return true end
+      end
+    end
+    if Utils.HasBuff(Player,GravitumOff) then
+      if Utils.HasBuff(Player,SeverumOn) and w2 then
+        if Aphelios.W:Cast() then return true end
+      end
+      if Utils.HasBuff(Player,InfernumOn) and w4 then
+        if Aphelios.W:Cast() then return true end
+      end
+      if Utils.HasBuff(Player,CrescendumOn) and w5 then
+        if Aphelios.W:Cast() then return true end
+      end
+    end
+    if Utils.HasBuff(Player,InfernumOff) then
+      if Utils.HasBuff(Player,CrescendumOn) and w5 then
+        if Aphelios.W:Cast() then return true end
+      end
+    end
+  end
+  if LowHp then
+    if Utils.HasBuff(Player,SeverumOff) then
+      if Utils.HasBuff(Player,CalibrumOn) and w1 then
+        if Aphelios.W:Cast() then return true end
+      end
+      if Utils.HasBuff(Player,GravitumOn) and w3 then
+        if Aphelios.W:Cast() then return true end
+      end
+      if Utils.HasBuff(Player,InfernumOn) and w4 then
+        if Aphelios.W:Cast() then return true end
+      end
+      if Utils.HasBuff(Player,CrescendumOn) and w5 then
+        if Aphelios.W:Cast() then return true end
+      end
+    end
+    if Utils.HasBuff(Player,GravitumOff) then
+      if Utils.HasBuff(Player,CalibrumOn) and w1 then
+        if Aphelios.W:Cast() then return true end
+      end
+      if Utils.HasBuff(Player,InfernumOn) and w4 then
+        if Aphelios.W:Cast() then return true end
+      end
+      if Utils.HasBuff(Player,CrescendumOn) and w5 then
+        if Aphelios.W:Cast() then return true end
+      end
+    end
+    if Utils.HasBuff(Player,CrescendumOff) then
+      if Utils.HasBuff(Player,InfernumOn) and w4 then
+        if Aphelios.W:Cast() then return true end
+      end
+      if Utils.HasBuff(Player,CalibrumOn) and w1 then
+        if Aphelios.W:Cast() then return true end
+      end
+    end
+    if Utils.HasBuff(Player,InfernumOff) then
+      if Utils.HasBuff(Player,CalibrumOn) and w1 then
+        if Aphelios.W:Cast() then return true end
+      end
+    end
+  end
+  if CloseRange then
+    if Utils.HasBuff(Player,CrescendumOff) then
+      if Utils.HasBuff(Player,CalibrumOn) and w1 then
+        if Aphelios.W:Cast() then return true end
+      end
+      if Utils.HasBuff(Player,SeverumOn) and w2 then
+        if Aphelios.W:Cast() then return true end
+      end
+      if Utils.HasBuff(Player,GravitumOn) and w3 then
+        if Aphelios.W:Cast() then return true end
+      end
+      if Utils.HasBuff(Player,InfernumOn) and w4 then
+        if Aphelios.W:Cast() then return true end
+      end
+    end
+    if Utils.HasBuff(Player,GravitumOff) then
+      if Utils.HasBuff(Player,CalibrumOn) and w1 then
+        if Aphelios.W:Cast() then return true end
+      end
+      if Utils.HasBuff(Player,SeverumOn) and w2 then
+        if Aphelios.W:Cast() then return true end
+      end
+      if Utils.HasBuff(Player,InfernumOn) and w4 then
+        if Aphelios.W:Cast() then return true end
+      end
+    end
+    if Utils.HasBuff(Player,SeverumOff) then
+      if Utils.HasBuff(Player,CalibrumOn) and w1 then
+        if Aphelios.W:Cast() then return true end
+      end
+      if Utils.HasBuff(Player,InfernumOn) and w4 then
+        if Aphelios.W:Cast() then return true end
+      end
+    end
+    if Utils.HasBuff(Player,InfernumOff) then
+      if Utils.HasBuff(Player,CalibrumOn) and w1 then
+        if Aphelios.W:Cast() then return true end
+      end
+    end
+  end
+  if target ~= nil and (Player.Health/Player.MaxHealth) * 100 >= 60 and target:Distance(Player.Position) > range/1.5 and Utils.IsValidTarget(TS:GetTarget(range)) then
+    if Utils.HasBuff(Player,InfernumOff) then
+      if Utils.HasBuff(Player,CalibrumOn) and w1 then
+        if Aphelios.W:Cast() then return true end
+      end
+      if Utils.HasBuff(Player,SeverumOn) and w2 then
+        if Aphelios.W:Cast() then return true end
+      end
+      if Utils.HasBuff(Player,GravitumOn) and w3 then
+        if Aphelios.W:Cast() then return true end
+      end
+      if Utils.HasBuff(Player,CrescendumOn) and w5 then
+        if Aphelios.W:Cast() then return true end
+      end
+    end
+    if Utils.HasBuff(Player,CrescendumOff) then
+      if Utils.HasBuff(Player,CalibrumOn) and w1 then
+        if Aphelios.W:Cast() then return true end
+      end
+      if Utils.HasBuff(Player,SeverumOn) and w2 then
+        if Aphelios.W:Cast() then return true end
+      end
+      if Utils.HasBuff(Player,GravitumOn) and w3 then
+        if Aphelios.W:Cast() then return true end
+      end
+    end
+    if Utils.HasBuff(Player,GravitumOff) then
+      if Utils.HasBuff(Player,CalibrumOn) and w1 then
+        if Aphelios.W:Cast() then return true end
+      end
+      if Utils.HasBuff(Player,SeverumOn) and w2 then
+        if Aphelios.W:Cast() then return true end
+      end
+    end
+    if Utils.HasBuff(Player,CalibrumOff) then
+      if Utils.HasBuff(Player,SeverumOn) and w2 then
+        if Aphelios.W:Cast() then return true end
+      end
+    end
+  end
+  return false
 end
 
-function Aphelios.CheckUltMarks() 
-	for k, v in pairs(ObjectManager.Get("enemy", "heroes")) do
-		local enemy = v.AsAI
-		if Utils.HasBuff(enemy,CalibrumDebuff) then
-			CalibrumMarks = CalibrumMarks + 1
-		end
-	end
+function Aphelios.CheckUltMarks()
+  for k, v in pairs(ObjectManager.Get("enemy", "heroes")) do
+    local enemy = v.AsAI
+    if Utils.HasBuff(enemy,CalibrumDebuff) then
+      CalibrumMarks = CalibrumMarks + 1
+    end
+  end
 end
 
 function Aphelios.LogicR()
-	if not None then
-		local rTarget = TS:GetTarget(1300,false)
-		if Utils.IsValidTarget(rTarget) then
-			if rTarget.Health <= Utils.GetRDmg(rTarget) then
-				if r4Ready then
-					local rPred = Aphelios.R1:GetPrediction(rTarget)
-					if Utils.HasBuff(Player,InfernumOn) then
-						if rPred and rPred.HitChanceEnum >= HitChanceEnum.Medium then
-							if Aphelios.R1:Cast(rPred.CastPosition) then return true end
-						end
-					else
-						if Aphelios.W:Cast() then
-							if rPred and rPred.HitChanceEnum >= HitChanceEnum.Medium then
-								if Aphelios.R1:Cast(rPred.CastPosition) then return true end
-							end
-						end
-					end
-				elseif r5Ready then
-					local rPred = Aphelios.R2:GetPrediction(rTarget)
-					if Utils.HasBuff(Player,CrescendumOn) then
-						if rPred and rPred.HitChanceEnum >= HitChanceEnum.Medium then
-							if Aphelios.R2:Cast(rPred.CastPosition) then return true end
-						end
-					else 
-						if Aphelios.W:Cast() then
-							if rPred and rPred.HitChanceEnum >= HitChanceEnum.Medium then
-								if Aphelios.R2:Cast(rPred.CastPosition) then return true end
-							end
-						end
-					end
-				elseif r1Ready then
-					local rPred = Aphelios.R2:GetPrediction(rTarget)
-					if Utils.HasBuff(Player,CalibrumOn) then
-						if rPred and rPred.HitChanceEnum >= HitChanceEnum.Medium then
-							if Aphelios.R2:Cast(rPred.CastPosition) then return true end
-						end
-					else
-						if Aphelios.W:Cast() then
-							if rPred and rPred.HitChanceEnum >= HitChanceEnum.Medium then
-								if Aphelios.R2:Cast(rPred.CastPosition) then return true end
-							end
-						end
-					end
-				elseif r3Ready then
-					local rPred = Aphelios.R2:GetPrediction(rTarget)
-					if Utils.HasBuff(Player,GravitumOn) then
-						if rPred and rPred.HitChanceEnum >= HitChanceEnum.Medium then
-							if Aphelios.R2:Cast(rPred.CastPosition) then return true end
-						end
-					else
-						if Aphelios.W:Cast() then
-							if rPred and rPred.HitChanceEnum >= HitChanceEnum.Medium then
-								if Aphelios.R2:Cast(rPred.CastPosition) then return true end
-							end
-						end
-					end
-				elseif r2Ready then
-					local rPred = Aphelios.R2:GetPrediction(rTarget)
-					if Utils.HasBuff(Player,SeverumOn) then
-						if rPred and rPred.HitChanceEnum >= HitChanceEnum.Medium then
-							if Aphelios.R2:Cast(rPred.CastPosition) then return true end
-						end
-					else
-						if Aphelios.W:Cast() then
-							if rPred and rPred.HitChanceEnum >= HitChanceEnum.Medium then
-								if Aphelios.R2:Cast(rPred.CastPosition) then return true end
-							end
-						end
-					end
-				end
-			end
-			if Utils.IsValidTarget(TS:GetTarget(range,false)) then
-				local rPos, hitCount = Aphelios.R2:GetBestCircularCastPos(TS:GetTargets(range,false))
-				if Utils.Count(range) >= 3 or hitCount >= 2 then
-					if r4Ready then
-						local rPred = Aphelios.R2:GetPrediction(TS:GetTarget(range,false))
-						if Utils.HasBuff(Player,InfernumOn) then
-							if rPred and rPred.HitChanceEnum >= HitChanceEnum.Medium then
-								if Aphelios.R2:Cast(rPos) then return true end
-							end
-						else
-							if Aphelios.W:Cast() then
-								if rPred then
-									if Aphelios.R2:Cast(rPos) then return true end
-								end
-							end
-						end
-					elseif r3Ready then
-						local rPred = Aphelios.R2:GetPrediction(TS:GetTarget(range,false))
-						if Utils.HasBuff(Player,GravitumOn) then
-							if rPred and rPred.HitChanceEnum >= HitChanceEnum.Medium then
-								if Aphelios.R2:Cast(rPos) then return true end
-							end
-						else 
-							if Aphelios.W:Cast() then
-								if rPred and rPred.HitChanceEnum >= HitChanceEnum.Medium then
-									if Aphelios.R2:Cast(rPos) then return true end
-								end
-							end
-						end
-					elseif r5Ready then
-						local rPred = Aphelios.R2:GetPrediction(TS:GetTarget(range,false))
-						if Utils.HasBuff(Player,CrescendumOn) then
-							if rPred and rPred.HitChanceEnum >= HitChanceEnum.Medium then
-								if Aphelios.R2:Cast(rPos) then return true end
-							end
-						else
-							if Aphelios.W:Cast() then
-								if rPred and rPred.HitChanceEnum >= HitChanceEnum.Medium then
-									if Aphelios.R2:Cast(rPos) then return true end
-								end
-							end
-						end
-					elseif r1Ready then
-						local rPred = Aphelios.R2:GetPrediction(TS:GetTarget(range,false))
-						if Utils.HasBuff(Player,CalibrumOn) then
-							if rPred and rPred.HitChanceEnum >= HitChanceEnum.Medium then
-								if Aphelios.R2:Cast(rPos) then return true end
-							end
-						else
-							if Aphelios.W:Cast() then
-								if rPred and rPred.HitChanceEnum >= HitChanceEnum.Medium then
-									if Aphelios.R2:Cast(rPos) then return true end
-								end
-							end
-						end
-					else
-						if rPred and rPred.HitChanceEnum >= HitChanceEnum.Medium then
-							if Aphelios.R2:Cast(rPos) then return true end
-						end
-					end
-				end
-			end
-			if r1Ready then
-				if rTarget:Distance(Player.Position) >= range then
-					local rDmg = Utils.GetRDmg(rTarget)
-					if rDmg > 0 then
-						if rTarget.Health <= rDmg + DamageLib.GetAutoAttackDamage(rTarget)*2 then
-							local rPred = Aphelios.R1:GetPrediction(rTarget)
-							if rPred and rPred.HitChanceEnum >= HitChanceEnum.Medium then
-								if Utils.HasBuff(Player,CalibrumOn) then
-									if Aphelios.R1:Cast(rPred.CastPosition) then return true end
-								else
-									if Aphelios.W:Cast() then
-										if Aphelios.R1:Cast(rPred.CastPosition) then return true end
-									end
-								end
-							end
-						end
-					end
-				end
-				if r2Ready and r3Ready then
-					if rTarget.Health <= 40 then
-						local rPred = Aphelios.R2:GetPrediction(rTarget)
-						if rPred and rPred.HitChanceEnum >= HitChanceEnum.Medium then
-							if Utils.HasBuff(Player,GravitumOn) then
-								if Aphelios.R2:Cast(rPred.CastPosition) then return true end
-							else
-								if Aphelios.W:Cast() then
-									if Aphelios.R2:Cast(rPred.CastPosition) then return true end
-								end
-							end
-						end
-					end
-				end
-				if r4Ready then
-					local rPos, hitCount = Aphelios.R2:GetBestCircularCastPos(TS:GetTargets(1300,false))
-					local rPred = Aphelios.R2:GetPrediction(rTarget)
-					if rPred and rPred.HitChanceEnum >= HitChanceEnum.Medium then
-						if hitCount >= 1 then
-							if rTarget.Health < DamageLib.GetAutoAttackDamage(rTarget) * hitCount + Utils.GetRDmg(rTarget) then
-								if Utils.HasBuff(Player,InfernumOn) then
-									if Aphelios.R2:Cast(rPred.CastPosition) then return true end
-								else
-									if Aphelios.W:Cast() then
-										if Aphelios.R2:Cast(rPred.CastPosition) then return true end
-									end
-								end
-							end
-						end
-						if hitCount >= 3 then
-							if Utils.HasBuff(Player,InfernumOn) then
-								if Aphelios.R2:Cast(rPos) then return true end
-							else
-								if Aphelios.W:Cast() then
-									if Aphelios.R2:Cast(rPos) then return true end
-								end
-							end
-						end
-					end
-					if r5Ready then
-						if Utils.Count(range) > 2 then
-							local rPred = Aphelios.R2:GetPrediction(rTarget)
-							if rPred and rPred.HitChanceEnum >= HitChanceEnum.Medium then
-								if Utils.HasBuff(Player,CrescendumOn) then
-									if Aphelios.R2:Cast(rPred.CastPosition) then return true end
-								else
-									if Aphelios.W:Cast() then
-										if Aphelios.R2:Cast(rPred.CastPosition) then return true end
-									end
-								end
-							end	
-						end
-					end
-				end
-			end
-		end
-	end
-	return false
+  if not None then
+    local rTarget = TS:GetTarget(1300,false)
+    if Utils.IsValidTarget(rTarget) then
+      if rTarget.Health <= Utils.GetRDmg(rTarget) then
+        if r4Ready then
+          local rPred = Aphelios.R1:GetPrediction(rTarget)
+          if Utils.HasBuff(Player,InfernumOn) then
+            if rPred and rPred.HitChanceEnum >= HitChanceEnum.Medium then
+              if Aphelios.R1:Cast(rPred.CastPosition) then return true end
+            end
+          else
+            if Aphelios.W:Cast() then
+              if rPred and rPred.HitChanceEnum >= HitChanceEnum.Medium then
+                if Aphelios.R1:Cast(rPred.CastPosition) then return true end
+              end
+            end
+          end
+        elseif r5Ready then
+          local rPred = Aphelios.R2:GetPrediction(rTarget)
+          if Utils.HasBuff(Player,CrescendumOn) then
+            if rPred and rPred.HitChanceEnum >= HitChanceEnum.Medium then
+              if Aphelios.R2:Cast(rPred.CastPosition) then return true end
+            end
+          else
+            if Aphelios.W:Cast() then
+              if rPred and rPred.HitChanceEnum >= HitChanceEnum.Medium then
+                if Aphelios.R2:Cast(rPred.CastPosition) then return true end
+              end
+            end
+          end
+        elseif r1Ready then
+          local rPred = Aphelios.R2:GetPrediction(rTarget)
+          if Utils.HasBuff(Player,CalibrumOn) then
+            if rPred and rPred.HitChanceEnum >= HitChanceEnum.Medium then
+              if Aphelios.R2:Cast(rPred.CastPosition) then return true end
+            end
+          else
+            if Aphelios.W:Cast() then
+              if rPred and rPred.HitChanceEnum >= HitChanceEnum.Medium then
+                if Aphelios.R2:Cast(rPred.CastPosition) then return true end
+              end
+            end
+          end
+        elseif r3Ready then
+          local rPred = Aphelios.R2:GetPrediction(rTarget)
+          if Utils.HasBuff(Player,GravitumOn) then
+            if rPred and rPred.HitChanceEnum >= HitChanceEnum.Medium then
+              if Aphelios.R2:Cast(rPred.CastPosition) then return true end
+            end
+          else
+            if Aphelios.W:Cast() then
+              if rPred and rPred.HitChanceEnum >= HitChanceEnum.Medium then
+                if Aphelios.R2:Cast(rPred.CastPosition) then return true end
+              end
+            end
+          end
+        elseif r2Ready then
+          local rPred = Aphelios.R2:GetPrediction(rTarget)
+          if Utils.HasBuff(Player,SeverumOn) then
+            if rPred and rPred.HitChanceEnum >= HitChanceEnum.Medium then
+              if Aphelios.R2:Cast(rPred.CastPosition) then return true end
+            end
+          else
+            if Aphelios.W:Cast() then
+              if rPred and rPred.HitChanceEnum >= HitChanceEnum.Medium then
+                if Aphelios.R2:Cast(rPred.CastPosition) then return true end
+              end
+            end
+          end
+        end
+      end
+      if Utils.IsValidTarget(TS:GetTarget(range,false)) then
+        local rPos, hitCount = Aphelios.R2:GetBestCircularCastPos(TS:GetTargets(range,false))
+        if Utils.Count(range) >= 3 or hitCount >= 2 then
+          if r4Ready then
+            local rPred = Aphelios.R2:GetPrediction(TS:GetTarget(range,false))
+            if Utils.HasBuff(Player,InfernumOn) then
+              if rPred and rPred.HitChanceEnum >= HitChanceEnum.Medium then
+                if Aphelios.R2:Cast(rPos) then return true end
+              end
+            else
+              if Aphelios.W:Cast() then
+                if rPred then
+                  if Aphelios.R2:Cast(rPos) then return true end
+                end
+              end
+            end
+          elseif r3Ready then
+            local rPred = Aphelios.R2:GetPrediction(TS:GetTarget(range,false))
+            if Utils.HasBuff(Player,GravitumOn) then
+              if rPred and rPred.HitChanceEnum >= HitChanceEnum.Medium then
+                if Aphelios.R2:Cast(rPos) then return true end
+              end
+            else
+              if Aphelios.W:Cast() then
+                if rPred and rPred.HitChanceEnum >= HitChanceEnum.Medium then
+                  if Aphelios.R2:Cast(rPos) then return true end
+                end
+              end
+            end
+          elseif r5Ready then
+            local rPred = Aphelios.R2:GetPrediction(TS:GetTarget(range,false))
+            if Utils.HasBuff(Player,CrescendumOn) then
+              if rPred and rPred.HitChanceEnum >= HitChanceEnum.Medium then
+                if Aphelios.R2:Cast(rPos) then return true end
+              end
+            else
+              if Aphelios.W:Cast() then
+                if rPred and rPred.HitChanceEnum >= HitChanceEnum.Medium then
+                  if Aphelios.R2:Cast(rPos) then return true end
+                end
+              end
+            end
+          elseif r1Ready then
+            local rPred = Aphelios.R2:GetPrediction(TS:GetTarget(range,false))
+            if Utils.HasBuff(Player,CalibrumOn) then
+              if rPred and rPred.HitChanceEnum >= HitChanceEnum.Medium then
+                if Aphelios.R2:Cast(rPos) then return true end
+              end
+            else
+              if Aphelios.W:Cast() then
+                if rPred and rPred.HitChanceEnum >= HitChanceEnum.Medium then
+                  if Aphelios.R2:Cast(rPos) then return true end
+                end
+              end
+            end
+          else
+            if rPred and rPred.HitChanceEnum >= HitChanceEnum.Medium then
+              if Aphelios.R2:Cast(rPos) then return true end
+            end
+          end
+        end
+      end
+      if r1Ready then
+        if rTarget:Distance(Player.Position) >= range then
+          local rDmg = Utils.GetRDmg(rTarget)
+          if rDmg > 0 then
+            if rTarget.Health <= rDmg + DamageLib.GetAutoAttackDamage(rTarget)*2 then
+              local rPred = Aphelios.R1:GetPrediction(rTarget)
+              if rPred and rPred.HitChanceEnum >= HitChanceEnum.Medium then
+                if Utils.HasBuff(Player,CalibrumOn) then
+                  if Aphelios.R1:Cast(rPred.CastPosition) then return true end
+                else
+                  if Aphelios.W:Cast() then
+                    if Aphelios.R1:Cast(rPred.CastPosition) then return true end
+                  end
+                end
+              end
+            end
+          end
+        end
+        if r2Ready and r3Ready then
+          if rTarget.Health <= 40 then
+            local rPred = Aphelios.R2:GetPrediction(rTarget)
+            if rPred and rPred.HitChanceEnum >= HitChanceEnum.Medium then
+              if Utils.HasBuff(Player,GravitumOn) then
+                if Aphelios.R2:Cast(rPred.CastPosition) then return true end
+              else
+                if Aphelios.W:Cast() then
+                  if Aphelios.R2:Cast(rPred.CastPosition) then return true end
+                end
+              end
+            end
+          end
+        end
+        if r4Ready then
+          local rPos, hitCount = Aphelios.R2:GetBestCircularCastPos(TS:GetTargets(1300,false))
+          local rPred = Aphelios.R2:GetPrediction(rTarget)
+          if rPred and rPred.HitChanceEnum >= HitChanceEnum.Medium then
+            if hitCount >= 1 then
+              if rTarget.Health < DamageLib.GetAutoAttackDamage(rTarget) * hitCount + Utils.GetRDmg(rTarget) then
+                if Utils.HasBuff(Player,InfernumOn) then
+                  if Aphelios.R2:Cast(rPred.CastPosition) then return true end
+                else
+                  if Aphelios.W:Cast() then
+                    if Aphelios.R2:Cast(rPred.CastPosition) then return true end
+                  end
+                end
+              end
+            end
+            if hitCount >= 3 then
+              if Utils.HasBuff(Player,InfernumOn) then
+                if Aphelios.R2:Cast(rPos) then return true end
+              else
+                if Aphelios.W:Cast() then
+                  if Aphelios.R2:Cast(rPos) then return true end
+                end
+              end
+            end
+          end
+          if r5Ready then
+            if Utils.Count(range) > 2 then
+              local rPred = Aphelios.R2:GetPrediction(rTarget)
+              if rPred and rPred.HitChanceEnum >= HitChanceEnum.Medium then
+                if Utils.HasBuff(Player,CrescendumOn) then
+                  if Aphelios.R2:Cast(rPred.CastPosition) then return true end
+                else
+                  if Aphelios.W:Cast() then
+                    if Aphelios.R2:Cast(rPred.CastPosition) then return true end
+                  end
+                end
+              end
+            end
+          end
+        end
+      end
+    end
+  end
+  return false
 end
 
 function Aphelios.LogicQ()
-	local qTarget = TS:GetTarget(Aphelios.Q1.Range) 
-	if Utils.IsValidTarget(qTarget) then
-		if Combo or (Harass or Laneclear and Menu.Get("ManaSlider") <= Player.ManaPercent * 100) then
-			if Utils.HasBuff(Player,CalibrumOn) and Aphelios.Q1:IsReady() then
-				local qPred = Aphelios.Q1:GetPrediction(qTarget)
-				if qPred and qPred.HitChanceEnum >= HitChanceEnum.High then
-					if Aphelios.Q1:Cast(qPred.CastPosition) then return true end
-				end
-			end
-			if target ~= nil and Utils.HasBuff(Player,SeverumOn) and Aphelios.Q2:IsReady() and Utils.IsValidTarget(target) and Aphelios.Q2:IsInRange(target) then
-				if Aphelios.Q2:Cast() then return true end
-			end
-			if Utils.HasBuff(Player,GravitumOn) and Aphelios.Q3:IsReady() then
-				for k, v in pairs(ObjectManager.Get("enemy", "heroes")) do
-					local enemy = v.AsAI
-					if Utils.HasBuff(enemy,GravitumDebuff) and Aphelios.Q3:IsInRange(enemy) then
-						if Aphelios.Q3:Cast() then return true end
-					end
-				end
-			end
-			if Utils.HasBuff(Player,InfernumOn)  and Aphelios.Q4:IsReady() then
-				local qPred = Aphelios.Q4:GetPrediction(qTarget)
-				if qPred and Aphelios.Q4:IsInRange(qTarget) and qPred.HitChanceEnum >= HitChanceEnum.High then
-					if Aphelios.Q4:Cast(qPred.CastPosition) then return true end
-				end
-			end
-			if Utils.HasBuff(Player,CrescendumOn) and Aphelios.Q5:IsReady() then
-				local qPred = Aphelios.Q5:GetPrediction(qTarget)
-				if qPred and Aphelios.Q5:IsInRange(qTarget) and qPred.HitChanceEnum >= HitChanceEnum.Low then
-					if Aphelios.Q5:Cast(qPred.CastPosition) then return true end
-				end
-			end
-		end
-	end
-	return false
+  local qTarget = TS:GetTarget(Aphelios.Q1.Range)
+  if Utils.IsValidTarget(qTarget) then
+    if Combo or (Harass or Laneclear and Menu.Get("ManaSlider") <= Player.ManaPercent * 100) then
+      if Utils.HasBuff(Player,CalibrumOn) and Aphelios.Q1:IsReady() then
+        local qPred = Aphelios.Q1:GetPrediction(qTarget)
+        if qPred and qPred.HitChanceEnum >= HitChanceEnum.High then
+          if Aphelios.Q1:Cast(qPred.CastPosition) then return true end
+        end
+      end
+      if target ~= nil and Utils.HasBuff(Player,SeverumOn) and Aphelios.Q2:IsReady() and Utils.IsValidTarget(target) and Aphelios.Q2:IsInRange(target) then
+        if Aphelios.Q2:Cast() then return true end
+      end
+      if Utils.HasBuff(Player,GravitumOn) and Aphelios.Q3:IsReady() then
+        for k, v in pairs(ObjectManager.Get("enemy", "heroes")) do
+          local enemy = v.AsAI
+          if Utils.HasBuff(enemy,GravitumDebuff) and Aphelios.Q3:IsInRange(enemy) then
+            if Aphelios.Q3:Cast() then return true end
+          end
+        end
+      end
+      if Utils.HasBuff(Player,InfernumOn)  and Aphelios.Q4:IsReady() then
+        local qPred = Aphelios.Q4:GetPrediction(qTarget)
+        if qPred and Aphelios.Q4:IsInRange(qTarget) and qPred.HitChanceEnum >= HitChanceEnum.High then
+          if Aphelios.Q4:Cast(qPred.CastPosition) then return true end
+        end
+      end
+      if Utils.HasBuff(Player,CrescendumOn) and Aphelios.Q5:IsReady() then
+        local qPred = Aphelios.Q5:GetPrediction(qTarget)
+        if qPred and Aphelios.Q5:IsInRange(qTarget) and qPred.HitChanceEnum >= HitChanceEnum.Low then
+          if Aphelios.Q5:Cast(qPred.CastPosition) then return true end
+        end
+      end
+    end
+  end
+  return false
 end
 
 function Aphelios.Clear()
-	if Laneclear and Menu.Get("ManaSliderLane") <= Player.ManaPercent * 100 and Menu.Get("laneclearQ") then
-		for k, v in pairs(ObjectManager.GetNearby("enemy", "minions")) do
-			local minion = v.AsAI
-			if Utils.HasBuff(Player,SeverumOn) and Aphelios.Q2:IsInRange(minion) and Aphelios.Q2:IsReady() then
-				if Aphelios.Q2:Cast() then return true end
-			end
-			if Utils.HasBuff(Player,InfernumOn)  and Aphelios.Q4:IsReady() then
-				local qPred = Aphelios.Q4:GetPrediction(minion)
-				local qPos , hitCount = Aphelios.Q4:GetBestCircularCastPos(ObjectManager.GetNearby("enemy", "minions"))
-				if qPred and Aphelios.Q4:IsInRange(minion) and qPred.HitChanceEnum >= HitChanceEnum.Low and hitCount >= 2 then
-					if Aphelios.Q4:Cast(qPos) then return true end
-				end
-			end
-			if Utils.HasBuff(Player,CrescendumOn)  and Aphelios.Q5:IsReady() then
-				local qPred = Aphelios.Q5:GetPrediction(minion)
-				local qPos , hitCount = Aphelios.Q5:GetBestCircularCastPos(ObjectManager.GetNearby("enemy", "minions"))
-				if qPred and Aphelios.Q5:IsInRange(minion) and qPred.HitChanceEnum >= HitChanceEnum.Low and hitCount >= 1 then
-					if Aphelios.Q5:Cast(qPos) then return true end
-				end
-			end
-		end
-	end
-	if Laneclear and Menu.Get("jungleclearQ") then
-		for k, v in pairs(ObjectManager.GetNearby("neutral", "minions")) do
-			local minion = v.AsAI
-			if Utils.HasBuff(Player,SeverumOn)  and Aphelios.Q2:IsInRange(minion) and Aphelios.Q2:IsReady() then
-				if Aphelios.Q2:Cast() then return true end
-			end
-			if Utils.HasBuff(Player,GravitumOn) then
-				if Utils.HasBuff(minion,GravitumDebuff) and Aphelios.Q3:IsInRange(minion) and Aphelios.Q3:IsReady() then
-					if Aphelios.Q3:Cast() then return true end
-				end
-			end
-			if Utils.HasBuff(Player,InfernumOn) and Aphelios.Q4:IsReady() then
-				local qPred = Aphelios.Q4:GetPrediction(minion)
-				local qPos , hitCount = Aphelios.Q4:GetBestCircularCastPos(ObjectManager.GetNearby("neutral", "minions"))
-				if qPred and Aphelios.Q4:IsInRange(minion) and qPred.HitChanceEnum >= HitChanceEnum.Low and hitCount >= 2 then
-					if Aphelios.Q4:Cast(qPos) then return true end
-				end
-			end
-			if Utils.HasBuff(Player,CrescendumOn) and Aphelios.Q5:IsReady() then
-				local qPred = Aphelios.Q5:GetPrediction(minion)
-				local qPos , hitCount = Aphelios.Q5:GetBestCircularCastPos(ObjectManager.GetNearby("neutral", "minions"))
-				if qPred and Aphelios.Q5:IsInRange(minion) and qPred.HitChanceEnum >= HitChanceEnum.Low and hitCount >= 1 then
-					if Aphelios.Q5:Cast(qPos) then return true end
-				end
-			end
-		end
-	end
-	return false
+  if Laneclear and Menu.Get("ManaSliderLane") <= Player.ManaPercent * 100 and Menu.Get("laneclearQ") then
+    for k, v in pairs(ObjectManager.GetNearby("enemy", "minions")) do
+      local minion = v.AsAI
+      if Utils.HasBuff(Player,SeverumOn) and Aphelios.Q2:IsInRange(minion) and Aphelios.Q2:IsReady() then
+        if Aphelios.Q2:Cast() then return true end
+      end
+      if Utils.HasBuff(Player,InfernumOn)  and Aphelios.Q4:IsReady() then
+        local qPred = Aphelios.Q4:GetPrediction(minion)
+        local qPos , hitCount = Aphelios.Q4:GetBestCircularCastPos(ObjectManager.GetNearby("enemy", "minions"))
+        if qPred and Aphelios.Q4:IsInRange(minion) and qPred.HitChanceEnum >= HitChanceEnum.Low and hitCount >= 2 then
+          if Aphelios.Q4:Cast(qPos) then return true end
+        end
+      end
+      if Utils.HasBuff(Player,CrescendumOn)  and Aphelios.Q5:IsReady() then
+        local qPred = Aphelios.Q5:GetPrediction(minion)
+        local qPos , hitCount = Aphelios.Q5:GetBestCircularCastPos(ObjectManager.GetNearby("enemy", "minions"))
+        if qPred and Aphelios.Q5:IsInRange(minion) and qPred.HitChanceEnum >= HitChanceEnum.Low and hitCount >= 1 then
+          if Aphelios.Q5:Cast(qPos) then return true end
+        end
+      end
+    end
+  end
+  if Laneclear and Menu.Get("jungleclearQ") then
+    for k, v in pairs(ObjectManager.GetNearby("neutral", "minions")) do
+      local minion = v.AsAI
+      if Utils.HasBuff(Player,SeverumOn)  and Aphelios.Q2:IsInRange(minion) and Aphelios.Q2:IsReady() then
+        if Aphelios.Q2:Cast() then return true end
+      end
+      if Utils.HasBuff(Player,GravitumOn) then
+        if Utils.HasBuff(minion,GravitumDebuff) and Aphelios.Q3:IsInRange(minion) and Aphelios.Q3:IsReady() then
+          if Aphelios.Q3:Cast() then return true end
+        end
+      end
+      if Utils.HasBuff(Player,InfernumOn) and Aphelios.Q4:IsReady() then
+        local qPred = Aphelios.Q4:GetPrediction(minion)
+        local qPos , hitCount = Aphelios.Q4:GetBestCircularCastPos(ObjectManager.GetNearby("neutral", "minions"))
+        if qPred and Aphelios.Q4:IsInRange(minion) and qPred.HitChanceEnum >= HitChanceEnum.Low and hitCount >= 2 then
+          if Aphelios.Q4:Cast(qPos) then return true end
+        end
+      end
+      if Utils.HasBuff(Player,CrescendumOn) and Aphelios.Q5:IsReady() then
+        local qPred = Aphelios.Q5:GetPrediction(minion)
+        local qPos , hitCount = Aphelios.Q5:GetBestCircularCastPos(ObjectManager.GetNearby("neutral", "minions"))
+        if qPred and Aphelios.Q5:IsInRange(minion) and qPred.HitChanceEnum >= HitChanceEnum.Low and hitCount >= 1 then
+          if Aphelios.Q5:Cast(qPos) then return true end
+        end
+      end
+    end
+  end
+  return false
 end
 
 -- function Aphelios.OnBuffUpdate(obj,buff)
-  -- if obj.IsEnemy or obj.IsMe then
-    -- if printf(buff.Name) then return true end
-  -- end
-  -- return false
+-- if obj.IsEnemy or obj.IsMe then
+-- if printf(buff.Name) then return true end
+-- end
+-- return false
 -- end
 
 function Aphelios.OnBasicAttack(sender,attack)
-	if sender.IsMe then
-		BeforeAA = true
-	else
-		BeforeAA = false
-	end
+  if sender.IsMe then
+    BeforeAA = true
+  else
+    BeforeAA = false
+  end
   return false
 end
 
 function Aphelios.OnProcessSpell(sender,spell)
-	if sender.IsMe then
-		if spell.Name == "ApheliosCalibrumQ" then
-			lastCalibrum = Game.GetTime()
-			Q1cd = Aphelios.Q1:GetSpellData().RemainingCooldown
-		end
-		if spell.Name == "ApheliosSeverumQ" then
-			lastSeverum = Game.GetTime()
-			Q2cd = Aphelios.Q1:GetSpellData().RemainingCooldown
-		end
-		if spell.Name == "ApheliosGravitumQ" then
-			lastGravitum = Game.GetTime()
-			Q3cd = Aphelios.Q3:GetSpellData().RemainingCooldown
-		end
-		if spell.Name == "ApheliosInfernumQ" then
-			lastInfernum = Game.GetTime()
-			Q4cd = Aphelios.Q4:GetSpellData().RemainingCooldown
-		end
-		if spell.Name == "ApheliosCrescendumQ" then
-			lastCrescendum = Game.GetTime()
-			Q5cd = Aphelios.Q5:GetSpellData().RemainingCooldown
-		end
-	end
-	return false
+  if sender.IsMe then
+    if spell.Name == "ApheliosCalibrumQ" then
+      lastCalibrum = Game.GetTime()
+      Q1cd = Aphelios.Q1:GetSpellData().RemainingCooldown
+    end
+    if spell.Name == "ApheliosSeverumQ" then
+      lastSeverum = Game.GetTime()
+      Q2cd = Aphelios.Q1:GetSpellData().RemainingCooldown
+    end
+    if spell.Name == "ApheliosGravitumQ" then
+      lastGravitum = Game.GetTime()
+      Q3cd = Aphelios.Q3:GetSpellData().RemainingCooldown
+    end
+    if spell.Name == "ApheliosInfernumQ" then
+      lastInfernum = Game.GetTime()
+      Q4cd = Aphelios.Q4:GetSpellData().RemainingCooldown
+    end
+    if spell.Name == "ApheliosCrescendumQ" then
+      lastCrescendum = Game.GetTime()
+      Q5cd = Aphelios.Q5:GetSpellData().RemainingCooldown
+    end
+  end
+  return false
 end
 
 function Aphelios.OnUpdate()
-	if not Utils.IsGameAvailable() then return false end
-	if Utils.NoLag(0) then
-		Aphelios.CheckCd()
-		Aphelios.CheckR()
-		Aphelios.CheckMode()
-		Aphelios.CheckGun()
-	end
-	for k, v in pairs(ObjectManager.Get("enemy", "heroes")) do
-		local enemy = v.AsAI
-		if Utils.HasBuff(enemy,CalibrumDebuff) and enemy:Distance(Player.Position) < 1800 then
-			if Input.Attack(enemy) then return true end
-		end
-	end
-	if Utils.NoLag(1) and Aphelios.W:IsReady() and Menu.Get("autoW") and (not BeforeAA and not Orbwalker.IsWindingUp()) then
-		if Aphelios.LogicW() then return true end
-	end
-	if Utils.NoLag(2) and Menu.Get("autoR") then
-		Aphelios.CheckUltMarks()
-		if Aphelios.LogicR() then return true end
-	end
-	if Utils.NoLag(3) and Menu.Get("autoQ") and Player.Level > 1 then
-		if Aphelios.LogicQ() then return true end
-	end
-	if Utils.NoLag(4) then
-		if Aphelios.Clear() then return true end
-	end
+  if not Utils.IsGameAvailable() then return false end
+  if Utils.NoLag(0) then
+    Aphelios.CheckCd()
+    Aphelios.CheckR()
+    Aphelios.CheckMode()
+    Aphelios.CheckGun()
+  end
+  for k, v in pairs(ObjectManager.Get("enemy", "heroes")) do
+    local enemy = v.AsAI
+    if Utils.HasBuff(enemy,CalibrumDebuff) and enemy:Distance(Player.Position) < 1800 then
+      if Input.Attack(enemy) then return true end
+    end
+  end
+  if Utils.NoLag(1) and Aphelios.W:IsReady() and Menu.Get("autoW") and (not BeforeAA and not Orbwalker.IsWindingUp()) then
+    if Aphelios.LogicW() then return true end
+  end
+  if Utils.NoLag(2) and Menu.Get("autoR") then
+    Aphelios.CheckUltMarks()
+    if Aphelios.LogicR() then return true end
+  end
+  if Utils.NoLag(3) and Menu.Get("autoQ") and Player.Level > 1 then
+    if Aphelios.LogicQ() then return true end
+  end
+  if Utils.NoLag(4) then
+    if Aphelios.Clear() then return true end
+  end
   local OrbwalkerMode = Orbwalker.GetMode()
-	if OrbwalkerMode == "Combo" then
-		Combo = true
-	else
-		Combo = false
-	end
-	if OrbwalkerMode == "Harass" then
-		Harass = true
-	else
-		Harass = false
-	end
-	if OrbwalkerMode == "Waveclear" then
-		Laneclear = true
-	else
-		Laneclear = false
-	end
-	if OrbwalkerMode == "nil" then
-		None = true
-	else
-		None = false
-	end
-	iTick = iTick + 1
-	if iTick > 4 then
-		iTick = 0
-	end
+  if OrbwalkerMode == "Combo" then
+    Combo = true
+  else
+    Combo = false
+  end
+  if OrbwalkerMode == "Harass" then
+    Harass = true
+  else
+    Harass = false
+  end
+  if OrbwalkerMode == "Waveclear" then
+    Laneclear = true
+  else
+    Laneclear = false
+  end
+  if OrbwalkerMode == "nil" then
+    None = true
+  else
+    None = false
+  end
+  iTick = iTick + 1
+  if iTick > 4 then
+    iTick = 0
+  end
   return false
 end
 
 function Aphelios.OnDrawDamage(target, dmgList)
-	if Menu.Get("DrawDmg") then
-		if Aphelios.R1:IsReady() then
-			table.insert(dmgList, Utils.GetRDmg(target))
-		end
-	end
+  if Menu.Get("DrawDmg") then
+    if Aphelios.R1:IsReady() then
+      table.insert(dmgList, Utils.GetRDmg(target))
+    end
+  end
 end
 
 function Aphelios.LoadMenu()
   local function ApheliosMenu()
     Menu.ColumnLayout("Casting", "Casting", 2, true, function ()
-		Menu.ColoredText("> Q", 0xB65A94FF, true)
-		Menu.Checkbox("autoQ", "Auto Q", true)
-		Menu.Checkbox("harassQ", "Harass Q", true)
-		Menu.Checkbox("laneclearQ", "Laneclear Q", false)
-		Menu.Checkbox("jungleclearQ", "JungleClear Q", false)
-		Menu.ColoredText("> W", 0x118AB2FF, true)
-		Menu.Checkbox("autoW", "Auto W", true)
-		Menu.ColoredText("> R", 0xB65A94FF, true)
-		Menu.Checkbox("autoR", "Auto R", true)
-		Menu.ColoredText("Misc", 0xB65A94FC, true)
-		Menu.ColoredText("Harass Mana Percent limit", 0xFFD700FF, true)
-		Menu.Slider("ManaSlider","",50,0,100)
-		Menu.ColoredText("Waveclear Mana Percent limit", 0xFFD700FF, true)
-		Menu.Slider("ManaSliderLane","",50,0,100)
-		Menu.Checkbox("DrawDmg", "Draw R Damage", true)
-		end)
+    Menu.ColoredText("> Q", 0xB65A94FF, true)
+    Menu.Checkbox("autoQ", "Auto Q", true)
+    Menu.Checkbox("harassQ", "Harass Q", true)
+    Menu.Checkbox("laneclearQ", "Laneclear Q", false)
+    Menu.Checkbox("jungleclearQ", "JungleClear Q", false)
+    Menu.ColoredText("> W", 0x118AB2FF, true)
+    Menu.Checkbox("autoW", "Auto W", true)
+    Menu.ColoredText("> R", 0xB65A94FF, true)
+    Menu.Checkbox("autoR", "Auto R", true)
+    Menu.ColoredText("Misc", 0xB65A94FC, true)
+    Menu.ColoredText("Harass Mana Percent limit", 0xFFD700FF, true)
+    Menu.Slider("ManaSlider","",50,0,100)
+    Menu.ColoredText("Waveclear Mana Percent limit", 0xFFD700FF, true)
+    Menu.Slider("ManaSliderLane","",50,0,100)
+    Menu.Checkbox("DrawDmg", "Draw R Damage", true)
+    end)
   end
   if Menu.RegisterMenu("Simple Aphelios", "Simple Aphelios", ApheliosMenu) then return true end
   return false
