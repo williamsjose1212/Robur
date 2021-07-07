@@ -1216,7 +1216,7 @@ function Aphelios.OnUpdate()
   end
   for k, v in pairs(ObjectManager.Get("enemy", "heroes")) do
     local enemy = v.AsAI
-    if Utils.HasBuff(enemy,CalibrumDebuff) and enemy:Distance(Player.Position) < 1800 then
+    if Utils.HasBuff(enemy,CalibrumDebuff) and enemy:Distance(Player.Position) < 1800 and enemy:Distance(Player.Position) > Orbwalker.GetTrueAutoAttackRange(Player) then
       if Input.Attack(enemy) then return true end
     end
   end
