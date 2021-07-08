@@ -120,14 +120,6 @@ function Utils.HasBuff(target,buffname)
 end
 function Poppy.Logic.Combo()
   local _Q = Poppy.Q:GetSpellData()
-  if Poppy.Q:IsReady() and Menu.Get("Combo.Q") then
-    for k,v in pairs(Utils.GetTargets(Poppy.Q)) do
-      local predQ = Poppy.Q:GetPrediction(v)
-      if predQ ~= nil and predQ.HitChanceEnum >= HitChanceEnum.Medium and Utils.IsValidTarget(v) and predQ.TargetPosition:Distance(predQ.CastPosition) < 160 then
-        if Poppy.Q:Cast(predQ.CastPosition)then return true end
-      end
-    end
-  end
   if Poppy.E:IsReady() and Menu.Get("Combo.E") then
     for k,v in pairs(Utils.GetTargets(Poppy.E)) do
       local predHp = HPred.GetHealthPrediction(v,2,true)
@@ -139,6 +131,14 @@ function Poppy.Logic.Combo()
         elseif Poppy.E:GetDamage(v) * 1.5 >= predHp then
           if Poppy.E:Cast(v) then return true end
         end
+      end
+    end
+  end
+  if Poppy.Q:IsReady() and Menu.Get("Combo.Q") then
+    for k,v in pairs(Utils.GetTargets(Poppy.Q)) do
+      local predQ = Poppy.Q:GetPrediction(v)
+      if predQ ~= nil and predQ.HitChanceEnum >= HitChanceEnum.Medium and Utils.IsValidTarget(v) and predQ.TargetPosition:Distance(predQ.CastPosition) < 160 then
+        if Poppy.Q:Cast(predQ.CastPosition)then return true end
       end
     end
   end
@@ -296,7 +296,7 @@ end
 
 function Poppy.OnUpdate()
   if not Utils.IsGameAvailable() then return false end
-
+  if Orbwalker.IsWindingUp() then return false end
   local OrbwalkerMode = Orbwalker.GetMode()
 
   local OrbwalkerLogic = Poppy.Logic[OrbwalkerMode]
