@@ -454,6 +454,23 @@ function Hecarim.OnUpdate()
   return false
 end
 
+function Hecarim.OnDrawDamage(target, dmgList)
+  if Menu.Get("DrawDmg") then
+    if Hecarim.Q:IsReady() then
+      table.insert(dmgList, Hecarim.GetQDmg(target))
+    end
+    if Hecarim.W:IsReady() then
+      table.insert(dmgList, Hecarim.W:GetDamage(target))
+    end
+    if Hecarim.E:IsReady() then
+      table.insert(dmgList, Hecarim.E:GetDamage(target))
+    end
+    if Hecarim.R:IsReady() then
+      table.insert(dmgList, Hecarim.R:GetDamage(target))
+    end
+  end
+end
+
 function Hecarim.LoadMenu()
   local function HecarimMenu()
     Menu.ColumnLayout("Casting", "Casting", 2, true, function ()
@@ -466,6 +483,8 @@ function Hecarim.LoadMenu()
     Menu.ColoredText("> R", 0xB65A94FF, true)
     Menu.Checkbox("autoR", "Auto R Aoe", true)
     Menu.Keybind("CastR", "Semi [R] Cast", string.byte('T'))
+    Menu.ColoredText("Misc", 0xB65A94FC, true)
+    Menu.Checkbox("DrawDmg", "Draw Damage", true)
     end)
   end
   if Menu.RegisterMenu("Simple Hecarim", "Simple Hecarim", HecarimMenu) then return true end
