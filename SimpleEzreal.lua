@@ -380,7 +380,7 @@ function Ezreal.LogicW()
       local wPred = Ezreal.W:GetPrediction(enemy)
       if wPred ~= nil and not Utils.CanMove(enemy) then
         if Ezreal.W:Cast(enemy.Position) then return true end
-      elseif wPred ~= nil and wPred.HitChanceEnum >= HitChanceEnum.High then
+      elseif wPred ~= nil and wPred.HitChanceEnum >= HitChanceEnum.Medium then
         if Ezreal.W:Cast(wPred.CastPosition) then return true end
       end
     end
