@@ -55,7 +55,7 @@ local Robj = {}
 
 Hecarim.Q = SpellLib.Active({
   Slot = SpellSlots.Q,
-  Range = 350,
+  Range = 355,
   Key = "Q"
 })
 
