@@ -352,11 +352,13 @@ function Hecarim.LogicW()
         if Hecarim.W:Cast() then return true end
       end
     end
-  end
-  for k, v in pairs(ObjectManager.GetNearby("neutral", "minions")) do
-    local minion = v.AsAI
-    if Utils.ValidMinion(minion) and Player:Distance(minion.Position) < Hecarim.W.Range then
-      if Hecarim.W:Cast() then return true end
+    if Menu.Get("jungleW") then
+      for k, v in pairs(ObjectManager.GetNearby("neutral", "minions")) do
+        local minion = v.AsAI
+        if Utils.ValidMinion(minion) and Player:Distance(minion.Position) < Hecarim.W.Range then
+          if Hecarim.W:Cast() then return true end
+        end
+      end
     end
   end
   return false
@@ -478,6 +480,7 @@ function Hecarim.LoadMenu()
     Menu.Checkbox("autoQ", "Auto Q", true)
     Menu.ColoredText("> W", 0x118AB2FF, true)
     Menu.Checkbox("autoW", "Auto W", true)
+    Menu.Checkbox("jungleW", "Jungle W", false)
     Menu.ColoredText("> E", 0x0066CCFF, true)
     Menu.Checkbox("autoE", "Auto E", false)
     Menu.ColoredText("> R", 0xB65A94FF, true)
