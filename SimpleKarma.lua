@@ -129,7 +129,7 @@ function Utils.SetMana()
 end
 
 function Utils.GetTargets(Spell)
-  return TS:GetTargets(Spell.Range,true)
+  return {TS:GetTarget(Spell.Range,true)}
 end
 
 function Utils.GetTargetsRange(Range)
@@ -313,11 +313,11 @@ function Karma.LogicQ()
       local qPred = Karma.Q:GetPrediction(enemy)
       local qPred2 = Karma.Q2:GetPrediction(enemy)
       if not Utils.HasBuff(Player,"KarmaMantra") and (not Karma.R:IsReady() or not Menu.Get("Combo.R"))  then
-        if qPred ~= nil and qPred.HitChanceEnum >= HitChanceEnum.High and qPred.TargetPosition:Distance(qPred.CastPosition) <= 120 then
+        if qPred ~= nil and qPred.HitChanceEnum >= HitChanceEnum.Medium then
           if Karma.Q:Cast(qPred.CastPosition) then return true end
         end
       elseif Utils.HasBuff(Player,"KarmaMantra") and Utils.CountEnemiesInRange(Player,1200) < 3 then
-        if qPred2 ~= nil and qPred2.HitChanceEnum >= HitChanceEnum.High then
+        if qPred2 ~= nil and qPred2.HitChanceEnum >= HitChanceEnum.Medium then
           if Karma.Q2:Cast(qPred2.CastPosition) then return true end
         end
       end
@@ -428,7 +428,7 @@ function Karma.LogicR()
   if (Combo and Menu.Get("Combo.R") and Player.Mana > qMana) or (Harass and Menu.Get("Harass.R") and Player.Mana > (eMana + qMana + wMana)*4) or (Waveclear and Menu.Get("WaveClear.R") and Player.Mana > (eMana + qMana + wMana)*3) then
     for k, enemy in ipairs(Utils.GetTargets(Karma.Q)) do
       local qPred = Karma.Q2:GetPrediction(enemy)
-      if Utils.HasBuff(enemy,"KarmaSpiritBind") or (Karma.Q:IsReady() and qPred ~= nil and qPred.HitChanceEnum >= HitChanceEnum.VeryHigh) then
+      if Utils.HasBuff(enemy,"KarmaSpiritBind") or (Karma.Q:IsReady() and qPred ~= nil and qPred.HitChanceEnum >= HitChanceEnum.High) then
         if Karma.R:Cast() then return true end
       end
     end
