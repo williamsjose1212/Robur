@@ -296,7 +296,7 @@ function Zilean.LogicQ()
   if (Combo and Menu.Get("Combo.Q") and Player.Mana > qMana) or (Harass and Menu.Get("Harass.Q") and Player.Mana > (eMana + qMana + wMana)*4) then
     for k, enemy in ipairs(Utils.GetTargets(Zilean.Q)) do
       local qPred = Zilean.Q:GetPrediction(enemy)
-      if qPred ~= nil and qPred.HitChanceEnum >= HitChanceEnum.Low and qPred.TargetPosition:Distance(qPred.CastPosition) <= 100 then
+      if qPred ~= nil and qPred.HitChanceEnum >= HitChanceEnum.Medium then
         if Zilean.Q:Cast(qPred.CastPosition) then return true end
       end
     end
