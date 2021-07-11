@@ -42,6 +42,7 @@ local Events = Enums.Events
 local HitChanceEnum = Enums.HitChance
 local Nav = CoreEx.Nav
 
+local willGetHit = false
 local next = next
 local Zilean = {}
 local qMana = 0
@@ -60,6 +61,7 @@ Zilean.Q = SpellLib.Skillshot({
   Type = "Circular",
   Collisions = {WindWall = true},
   Delay = 0.25,
+  UseHitbox = true,
   Key = "Q"
 })
 
@@ -97,21 +99,29 @@ end
 function Utils.SetMana()
   if Zilean.Q:IsReady() then
     qMana = Zilean.Q:GetManaCost()
+  elseif (Player.Health/Player.MaxHealth) * 100 < 20 then
+    qMana = 0
   else
     qMana = 0
   end
   if Zilean.W:IsReady() then
     wMana = Zilean.W:GetManaCost()
+  elseif (Player.Health/Player.MaxHealth) * 100 < 20 then
+    wMana = 0
   else
     wMana = 0
   end
   if Zilean.E:IsReady() then
     eMana = Zilean.E:GetManaCost()
+  elseif (Player.Health/Player.MaxHealth) * 100 < 20 then
+    eMana = 0
   else
     eMana = 0
   end
   if Zilean.R:IsReady() then
     rMana = Zilean.R:GetManaCost()
+  elseif (Player.Health/Player.MaxHealth) * 100 < 20 then
+    rMana = 0
   else
     rMana = 0
   end
@@ -262,7 +272,7 @@ function Utils.CanHit(target,spell)
     local pred = target:FastPrediction(spell.CastDelay)
     if pred == nil then return false end
     if spell.LineWidth > 0 then
-      local powCalc = (spell.LineWidth + hero.BoundingRadius)^2
+      local powCalc = (spell.LineWidth + target.BoundingRadius)^2
       if (pred:LineDistance(spell.StartPos,spell.EndPos,true) <= powCalc) or (target.Position:LineDistance(spell.StartPos,spell.EndPos,true) <= powCalc) then
         return true
       end
@@ -294,11 +304,9 @@ end
 
 function Zilean.LogicQ()
   if (Combo and Menu.Get("Combo.Q") and Player.Mana > qMana) or (Harass and Menu.Get("Harass.Q") and Player.Mana > (eMana + qMana + wMana)*4) then
-    for k, enemy in ipairs(Utils.GetTargets(Zilean.Q)) do
-      local qPred = Zilean.Q:GetPrediction(enemy)
-      if qPred ~= nil and qPred.HitChanceEnum >= HitChanceEnum.High then
-        if Zilean.Q:Cast(qPred.CastPosition) then return true end
-      end
+    local target = TS:GetTarget(Zilean.Q.Range,false)
+    if Utils.IsValidTarget(target) then
+      if Zilean.Q:CastOnHitChance(target,0.60) then return true end
     end
   end
   if Waveclear and Menu.Get("WaveClear.Q") and Player.Mana > (eMana + qMana + wMana)*3 then
@@ -394,9 +402,9 @@ function Zilean.LogicR()
       local incomingDamage = HPred.GetDamagePrediction(ally,2,false)
       local pre = HPred.GetHealthPrediction(ally,0.5,true)
       local enemies = Utils.CountEnemiesInRange(ally,700)
-      if Zilean.R:IsInRange(ally) and Menu.Get("1" .. ally.CharName) and ally.Health - incomingDamage < enemies * ally.Level * 25 and Utils.ValidUlt(ally) then
+      if Zilean.R:IsInRange(ally) and Menu.Get("1" .. ally.CharName) and ally.Health - incomingDamage < enemies * ally.Level * 50 and Utils.ValidUlt(ally) then
         if Zilean.R:Cast(ally) then return true end
-      elseif Zilean.R:IsInRange(ally) and Menu.Get("1" .. ally.CharName) and ally.Health - incomingDamage < ally.Level * 20 and Utils.ValidUlt(ally) then
+      elseif Zilean.R:IsInRange(ally) and Menu.Get("1" .. ally.CharName) and ally.Health - incomingDamage < ally.Level * 40 and Utils.ValidUlt(ally) then
         if Zilean.R:Cast(ally) then return true end
       end
       if Zilean.R:IsInRange(ally) and Menu.Get("1" .. ally.CharName) and (pre/ally.MaxHealth) * 100 < 20 and Utils.CountEnemiesInRange(ally,1200) > 0 and Utils.ValidUlt(ally) then
@@ -407,36 +415,33 @@ function Zilean.LogicR()
   end
   return false
 end
--- function Zilean.OnProcessSpell(sender,spell)
--- if spell.Target ~= nil then
--- if spell.SpellData and not spell.IsBasicAttack and spell.Target.IsHero and sender.IsMelee and sender.TeamId ~= spell.Target.TeamId then
--- local tSpell = SpellLib.Targeted({Slot = spell.Slot}) --sender:GetSpell(spell.Slot)
--- table.insert(incomingDamage, {Damage = tSpell:GetDamage(spell.Target), Time=Game.GetTime(), Skillshot = false})
--- return true
--- end
--- else
--- for k, champion in ipairs(ObjectManager.Get("all","heroes")) do
--- if champion.IsHero and sender.TeamId ~= champion.TeamId and champion:Distance(sender) < 2000 and champion.IsVisible and not champion.IsDead then
--- if Utils.CanHit(champion,spell) then
--- local tSpell = sender:GetSpell(spell.Slot)
--- table.insert(incomingDamage, {Damage = tSpell:GetDamage(spell.Target), Time=Game.GetTime(), Skillshot = true}
--- end
--- end
--- end
--- end
--- return false
--- end
 
--- function Zilean.OnSpellCast(sender,spell)
--- if spell.Target ~= nil and spell.SpellData and not spell.IsBasicAttack then
--- if spell.Target.IsHero and not sender.IsMelee and sender.TeamId ~= spell.Target.TeamId then
--- local tSpell = sender:GetSpell(spell.Slot)
--- table.insert(incomingDamage, {Damage = tSpell:GetDamage(spell.Target), Time=Game.GetTime(), Skillshot = false})
--- return true
--- end
--- end
--- return false
--- end
+function Zilean.OnProcessSpell(sender,spell)
+  if sender.IsHero and sender.IsEnemy and Menu.Get("Misc.AutoE") and not spell.IsBasicAttack then
+    for _, v in pairs(ObjectManager.GetNearby("ally","heroes")) do
+      local ally = v.AsHero
+      if Zilean.E:IsInRange(ally) and Player:Distance(spell.EndPos) <= Zilean.E.Range  then
+        if Utils.CanHit(Player,spell) then
+          willGetHit = true
+          if willGetHit then return true end
+        end
+        if  Utils.CanHit(ally,spell) and Player.Mana > eMana+qMana+rMana+wMana and Zilean.E:IsReady() then
+          if Zilean.E:Cast(ally) then return true end
+        end
+      end
+    end
+  end
+  willGetHit = false
+  return false
+end
+
+function Zilean.OnPreAttack(args)
+  if Player.Mana > qMana and Zilean.Q:IsReady() and args.Target.IsHero then
+    args.Process = false
+    if args.Process == false then return true end
+  end
+  return false
+end
 
 function Zilean.OnDraw()
   if Player.IsVisible and Player.IsOnScreen and not Player.IsDead then
@@ -458,7 +463,7 @@ function Zilean.OnUpdate()
   if Utils.NoLag(1) and Zilean.R:IsReady() then
     if Zilean.LogicR() then return true end
   end
-  if Utils.NoLag(2) and Zilean.Q:IsReady() then
+  if Utils.NoLag(2) and Zilean.Q:IsReady() and not Orbwalker.IsWindingUp() and not willGetHit then
     if Zilean.LogicQ() then return true end
   end
   if Utils.NoLag(3) and Zilean.W:IsReady() then
