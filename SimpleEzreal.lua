@@ -111,21 +111,29 @@ end
 function Utils.SetMana()
   if Ezreal.Q:IsReady() then
     qMana = Ezreal.Q:GetManaCost()
+  elseif (Player.Health/Player.MaxHealth) * 100 < 20 then
+    qMana = 0
   else
     qMana = 0
   end
   if Ezreal.W:IsReady() then
     wMana = Ezreal.W:GetManaCost()
+  elseif (Player.Health/Player.MaxHealth) * 100 < 20 then
+    wMana = 0
   else
     wMana = 0
   end
   if Ezreal.E:IsReady() then
     eMana = Ezreal.E:GetManaCost()
+  elseif (Player.Health/Player.MaxHealth) * 100 < 20 then
+    eMana = 0
   else
     eMana = 0
   end
   if Ezreal.R:IsReady() then
     rMana = Ezreal.R:GetManaCost()
+  elseif (Player.Health/Player.MaxHealth) * 100 < 20 then
+    rMana = 0
   else
     rMana = 0
   end
