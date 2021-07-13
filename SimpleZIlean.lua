@@ -306,7 +306,10 @@ function Zilean.LogicQ()
   if (Combo and Menu.Get("Combo.Q") and Player.Mana > qMana) or (Harass and Menu.Get("Harass.Q") and Player.Mana > (eMana + qMana + wMana)*4) then
     local target = TS:GetTarget(Zilean.Q.Range,false)
     if Utils.IsValidTarget(target) then
-      if Zilean.Q:CastOnHitChance(target,0.60) then return true end
+      local qPred = Zilean.Q:GetPrediction(target)
+      if qPred and qPred.HitChanceEnum >= HitChanceEnum.High then
+        if Zilean.Q:Cast(qPred.TargetPosition) then return true end
+      end
     end
   end
   if Waveclear and Menu.Get("WaveClear.Q") and Player.Mana > (eMana + qMana + wMana)*3 then
