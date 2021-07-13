@@ -54,11 +54,12 @@ local overkill = 0
 
 Ezreal.Q = SpellLib.Skillshot({
   Slot = SpellSlots.Q,
-  Range = 1210,
+  Range = 1200,
   Delay = 0.25,
   Speed = 2000,
   Radius = 120,
   Collisions = {Minions = true, WindWall = true },
+  UseHitbox = true,
   Type = "Linear",
   Key = "Q"
 })
@@ -68,7 +69,7 @@ Ezreal.W = SpellLib.Skillshot({
   Range = 1200,
   Delay = 0.25,
   Speed = 1700,
-  Radius = 80,
+  Radius = 160,
   Collisions = {Heroes = true, WindWall = true },
   Type = "Linear",
   UseHitbox = true,
@@ -304,15 +305,22 @@ function Utils.NoLag(tick)
   end
 end
 
+function Ezreal.CanCastW(target)
+  if Ezreal.W:IsReady() then
+    local wPred = Ezreal.W:GetPrediction(target)
+    if wPred and wPred.HitChanceEnum >= HitChanceEnum.High then
+      return true
+    end
+  end
+  return false
+end
+
 function Ezreal.LogicQ()
-  if (Combo and Menu.Get("Combo.Q") and Player.Mana > qMana + rMana) or (Harass or Waveclear and Menu.Get("Harass.Q") and Player.Mana > (eMana + qMana + wMana+rMana)*4) then
-    for k, enemy in ipairs(Utils.GetTargets(Ezreal.Q)) do
-      local qPred = Ezreal.Q:GetPrediction(enemy)
-      local wPred = Ezreal.W:GetPrediction(enemy)
-      if not Ezreal.W:IsReady() or not Menu.Get("Combo.W") or not Ezreal.W:CanCast(enemy) then
-        if qPred ~= nil and qPred.HitChanceEnum >= HitChanceEnum.Medium then
-          if Ezreal.Q:Cast(qPred.CastPosition) then return true end
-        end
+  if (Combo and Menu.Get("Combo.Q") and Player.Mana > qMana + rMana) or (Harass or Waveclear and Menu.Get("Harass.Q") and Player.Mana > (eMana + qMana + wMana+rMana)*4) or (Menu.Get("HarassOn") and Menu.Get("Harass.Q")) then
+    local target = TS:GetTarget(Ezreal.Q.Range,false)
+    if Utils.IsValidTarget(target) then
+      if not Ezreal.CanCastW(target) or target.Health < Ezreal.Q:GetDamage(target) then
+        if Ezreal.Q:CastOnHitChance(target,0.60) then return true end
       end
     end
   end
@@ -336,7 +344,7 @@ function Ezreal.LogicQ()
       table.sort(monstersQ, function(a, b) return a.MaxHealth < b.MaxHealth end)
     end
   end
-  if Waveclear and Player.Mana > (eMana + qMana + wMana+rMana)*3 and Menu.Get("WaveClear.Q") then
+  if Waveclear and Player.Mana > (eMana + qMana + wMana+rMana)*2 and Menu.Get("WaveClear.Q") then
     for k, minion in pairs(monstersQ) do
       if not minion.IsAI then return false end
       local qPred = Prediction.GetPredictedPosition(minion, Ezreal.Q, Player.Position)
@@ -350,9 +358,9 @@ function Ezreal.LogicQ()
         local delay = (Player:Distance(minion.Position)/ Ezreal.Q.Speed + Ezreal.Q.Delay)*1000
         local hpPred = HPred.GetHealthPrediction(minion,delay,false)
         if hpPred > 20 then
-          if minion.Health < Ezreal.Q:GetDamage(minion) and Player:Distance(minion.Position) <= Orbwalker.GetTrueAutoAttackRange() then
+          if minion.Health < Ezreal.Q:GetDamage(minion) and Player:Distance(minion.Position) <= Orbwalker.GetTrueAutoAttackRange() and not Orbwalker.IsWindingUp() then
             if Ezreal.Q:Cast(qPred.CastPosition) then return true end
-          elseif (minion.Health/minion.MaxHealth)*100 > 80 and Menu.Get("WaveClear.Qpush") then
+          elseif (minion.Health/minion.MaxHealth)*100 > 80 and Menu.Get("WaveClear.Qpush") and not Orbwalker.IsWindingUp() then
             if Ezreal.Q:Cast(qPred.CastPosition) then return true end
           end
         end
@@ -375,12 +383,13 @@ function Ezreal.LogicQ()
 end
 
 function Ezreal.LogicW()
-  if (Combo and Menu.Get("Combo.W") and Player.Mana > eMana+wMana+rMana) or (Harass and Menu.Get("Harass.W") and Player.Mana > (eMana + rMana + wMana+qMana)*5) then
-    for k, enemy in ipairs(Utils.GetTargets(Ezreal.W)) do
-      local wPred = Ezreal.W:GetPrediction(enemy)
-      if wPred ~= nil and not Utils.CanMove(enemy) then
-        if Ezreal.W:Cast(enemy.Position) then return true end
-      elseif wPred ~= nil and wPred.HitChanceEnum >= HitChanceEnum.Medium then
+  if (Combo and Menu.Get("Combo.W") and Player.Mana > eMana+wMana+rMana) or (Harass and Menu.Get("Harass.W") and Player.Mana > (eMana + rMana + wMana+qMana)*4) or (Menu.Get("HarassOn") and Menu.Get("Harass.W")) then
+    local target = TS:GetTarget(Ezreal.W.Range,false)
+    if Utils.IsValidTarget(target) then
+      local wPred = Ezreal.W:GetPrediction(target)
+      if wPred ~= nil and not Utils.CanMove(target) then
+        if Ezreal.W:Cast(target.Position) then return true end
+      elseif wPred ~= nil and wPred.HitChanceEnum >= HitChanceEnum.High then
         if Ezreal.W:Cast(wPred.CastPosition) then return true end
       end
     end
@@ -475,28 +484,6 @@ function Ezreal.Logic.Auto()
       local hpPred = HPred.GetHealthPrediction(enemy,delay,false)
       if hpPred < Ezreal.W:GetDamage(enemy) and Utils.IsValidTarget(enemy) then
         overkill = Game.GetTime()
-      end
-    end
-  end
-  if Menu.Get("HarassOn") then
-    local MenuValueQ = Menu.Get("Harass.Q")
-    local MenuValueW = Menu.Get("Harass.W")
-    if MenuValueQ and Ezreal.Q:IsReady() and Player.Mana > qMana + wMana then
-      for k, enemy in ipairs(Utils.GetTargets(Ezreal.Q)) do
-        local qPred = Ezreal.Q:GetPrediction(enemy)
-        if not Ezreal.W:IsReady() or not MenuValueW or not Ezreal.W:CanCast(enemy) then
-          if qPred ~= nil and qPred.HitChanceEnum >= HitChanceEnum.High and Utils.IsValidTarget(enemy) then
-            if Ezreal.Q:Cast(qPred.CastPosition) then return true end
-          end
-        end
-      end
-    end
-    if MenuValueW and Ezreal.W:IsReady() and Player.Mana > wMana + qMana then
-      for k, enemy in ipairs(Utils.GetTargets(Ezreal.W)) do
-        local wPred = Ezreal.W:GetPrediction(enemy)
-        if wPred ~= nil and wPred.HitChanceEnum >= HitChanceEnum.High and Utils.IsValidTarget(enemy) then
-          if Ezreal.W:Cast(wPred.CastPosition) then return true end
-        end
       end
     end
   end
