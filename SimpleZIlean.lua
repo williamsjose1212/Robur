@@ -407,8 +407,7 @@ function Zilean.LogicR()
       elseif Zilean.R:IsInRange(ally) and Menu.Get("1" .. ally.CharName) and ally.Health - incomingDamage < ally.Level * 40 and Utils.ValidUlt(ally) then
         if Zilean.R:Cast(ally) then return true end
       end
-      if Zilean.R:IsInRange(ally) and Menu.Get("1" .. ally.CharName) and (pre/ally.MaxHealth) * 100 < 20 and Utils.CountEnemiesInRange(ally,1200) > 0 and Utils.ValidUlt(ally) then
-        printf("wtf")
+      if Zilean.R:IsInRange(ally) and Menu.Get("1" .. ally.CharName) and (pre/ally.MaxHealth) * 100 < 15 and Utils.CountEnemiesInRange(ally,600) > 0 and Utils.ValidUlt(ally) then
         if Zilean.R:Cast(ally) then return true end
       end
     end
