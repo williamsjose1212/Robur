@@ -328,7 +328,10 @@ function Ezreal.LogicQ()
     local target = TS:GetTarget(Ezreal.Q.Range,false)
     if Utils.IsValidTarget(target) then
       if not Ezreal.CanCastW(target) or target.Health < Ezreal.Q:GetDamage(target) then
-        if Ezreal.Q:CastOnHitChance(target,0.60) then return true end
+        local qPred = Ezreal.Q:GetPrediction(target)
+        if qPred and qPred.HitChanceEnum >= HitChanceEnum.High then
+          if Ezreal.Q:Cast(qPred.CastPosition) then return true end
+        end
       end
     end
   end
