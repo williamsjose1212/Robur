@@ -303,7 +303,7 @@ function Zilean.OnGapclose(source,dash)
 end
 
 function Zilean.LogicQ()
-  if (Combo and Menu.Get("Combo.Q") and Player.Mana > qMana) or (Harass and Menu.Get("Harass.Q") and Player.Mana > (eMana + qMana + wMana)*4) then
+  if (Combo and Menu.Get("Combo.Q") and Player.Mana > qMana) or (Harass and Menu.Get("Harass.Q") and Player.Mana > (eMana + qMana + wMana+rMana)*2) then
     local target = TS:GetTarget(Zilean.Q.Range,false)
     if Utils.IsValidTarget(target) then
       local qPred = Zilean.Q:GetPrediction(target)
@@ -346,7 +346,7 @@ function Zilean.LogicQ()
 end
 
 function Zilean.LogicW()
-  if not Zilean.Q:IsReady() and (Combo and Menu.Get("Combo.W") and Player.Mana > qMana) or (Harass and Menu.Get("Harass.W") and Player.Mana > (eMana + qMana + wMana)*4) then
+  if not Zilean.Q:IsReady() and (Combo and Menu.Get("Combo.W") and Player.Mana > qMana) or (Harass and Menu.Get("Harass.W") and Player.Mana > (eMana + qMana + wMana + rMana)*2) then
     for k, hero in ipairs(ObjectManager.GetNearby("all", "heroes")) do
       if Utils.HasQZileanBuff(hero) then
         if Zilean.W:Cast() then return true end
@@ -358,7 +358,7 @@ function Zilean.LogicW()
       end
     end
   end
-  if not Zilean.Q:IsReady() and Waveclear and Menu.Get("WaveClear.W") and Player.Mana > (eMana + qMana + wMana)*3 then
+  if not Zilean.Q:IsReady() and Waveclear and Menu.Get("WaveClear.W") and Player.Mana > (eMana + qMana + wMana+rMana)*3 then
     for k, enemy in ipairs(ObjectManager.GetNearby("enemy", "minions")) do
       if Utils.HasQZileanBuff(enemy) then
         if Zilean.W:Cast() then return true end
@@ -374,7 +374,7 @@ function Zilean.LogicW()
 end
 
 function Zilean.LogicE()
-  if (Combo and Menu.Get("Combo.E") and Player.Mana > qMana+eMana+wMana+rMana) or (Harass and Menu.Get("Harass.E") and Player.Mana > (eMana + qMana + wMana)*4) then
+  if (Combo and Menu.Get("Combo.E") and Player.Mana > qMana+eMana+wMana+rMana) or (Harass and Menu.Get("Harass.E") and Player.Mana > (eMana + qMana + wMana+rMana)*2) then
     for k, enemy in ipairs(Utils.GetTargets(Zilean.E)) do
       if Utils.HasQZileanBuff(enemy) or not Zilean.Q:IsReady() then
         if Zilean.E:Cast(enemy) then return true end
