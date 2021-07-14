@@ -330,11 +330,11 @@ function Hecarim.LogicQ()
         if Hecarim.Q:Cast() then return true end
       end
     end
-  end
-  for k, v in pairs(ObjectManager.GetNearby("neutral", "minions")) do
-    local minion = v.AsAI
-    if Utils.ValidMinion(minion) and Player:Distance(minion.Position) < Hecarim.Q.Range then
-      if Hecarim.Q:Cast() then return true end
+    for k, v in pairs(ObjectManager.GetNearby("neutral", "minions")) do
+      local minion = v.AsAI
+      if Utils.ValidMinion(minion) and Player:Distance(minion.Position) < Hecarim.Q.Range then
+        if Hecarim.Q:Cast() then return true end
+      end
     end
   end
   return false
@@ -415,7 +415,7 @@ function Hecarim.OnUpdate()
   if Utils.NoLag(0) then
     if Utils.SetMana() then return true end
   end
-  if Utils.NoLag(1) and Hecarim.R:IsReady() and Menu.Get("autoR") then
+  if Utils.NoLag(1) and Hecarim.R:IsReady() then
     if Hecarim.LogicR() then return true end
   end
   if Utils.NoLag(2) and Hecarim.Q:IsReady() and Menu.Get("autoQ") then
