@@ -468,7 +468,7 @@ function Ornn.GetDamageE(target)
 end
 
 function Ornn.OnProcessSpell(sender,spell)
-  if sender.IsHero and sender.IsEnemy and Player.Mana > wMana and Ornn.W:IsReady() and Player:Distance(sender.Position) <= Ornn.E.Range and (not spell.IsBasicAttack or spell.IsSpecialAttack) then
+  if sender.IsHero and sender.IsEnemy and Player.Mana > wMana and Ornn.W:IsReady() and Player:Distance(sender.Position) < Ornn.W.Range and (not spell.IsBasicAttack or spell.IsSpecialAttack) then
     if  Utils.CanHit(Player,spell) then
       if Ornn.W:Cast(sender.Position) then return true end
     end
