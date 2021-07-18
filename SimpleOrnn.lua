@@ -321,13 +321,33 @@ function Ornn.LogicQ()
       end
     end
   end
+  if Laneclear and Player.Mana > qMana + wMana + eMana + rMana and Menu.Get("qLastHit") then
+    local minionsQ = {}
+    for k, v in pairs(ObjectManager.GetNearby("enemy", "minions")) do
+      local minion = v.AsAI
+      local minionInRange = minion and minion.MaxHealth > 6 and Ornn.Q:IsInRange(minion)
+      local shouldIgnoreMinion = minion and (Orbwalker.IsLasthitMinion(minion) or Orbwalker.IsIgnoringMinion(minion))
+      if minionInRange and not shouldIgnoreMinion and minion.IsTargetable  and Utils.IsValidTarget(minion) then
+        table.insert(minionsQ, minion)
+        table.sort(minionsQ, function(a, b) return a.MaxHealth > b.MaxHealth end)
+      end
+    end
+    for k, minion in pairs(minionsQ) do
+      local qPred = Ornn.Q:GetPrediction(minion)
+      local delay = (Player:Distance(minion.Position)/Ornn.Q.Speed + Ornn.Q.Delay)*10
+      local hpPred = HPred.GetHealthPrediction(minion,delay,false)
+      if qPred and hpPred > 0 and hpPred < Ornn.GetDamageQ(minion) then
+        if Ornn.Q:Cast(qPred.CastPosition) then return true end
+      end
+    end
+  end
   return false
 end
 
 function Ornn.LogicW()
   local target = TS:GetTarget(Ornn.W.Range)
   if Utils.IsValidTarget(target) and not Utils.HasBuff(target,"OrnnVulnerableDebuff") then
-    if (Combo and Player.Mana > wMana) or (Harass and Menu.Get("ManaSlider") <= Player.ManaPercent * 100) then
+    if (Combo and Player.Mana > wMana) or ((Harass or Laneclear) and Menu.Get("ManaSlider") <= Player.ManaPercent * 100) then
       local wPred = Ornn.W:GetPrediction(target)
       if not Utils.CanMove(target) then
         if Ornn.W:Cast(target.Position) then return true end
@@ -596,6 +616,7 @@ function Ornn.LoadMenu()
     Menu.ColoredText("> Q", 0xB65A94FF, true)
     Menu.Checkbox("autoQ", "Auto Q", true)
     Menu.Checkbox("qHarass", "Q Harass", true)
+    Menu.Checkbox("qLastHit", "Q LastHit", true)
     Menu.ColoredText("> W", 0x118AB2FF, true)
     Menu.Checkbox("autoW", "Auto W", true)
     Menu.ColoredText("> E", 0x0066CCFF, true)
@@ -606,8 +627,6 @@ function Ornn.LoadMenu()
     Menu.ColoredText("Misc", 0xB65A94FC, true)
     Menu.ColoredText("Harass Mana Percent limit", 0xFFD700FF, true)
     Menu.Slider("ManaSlider","",50,0,100)
-    Menu.ColoredText("Waveclear Maa Percent limit", 0xFFD700FF, true)
-    Menu.Slider("ManaSliderLane","",35,0,100)
     Menu.Separator()
     Menu.ColoredText("Drawing", 0xB65A94FF, true)
     Menu.Checkbox("Drawing.Q.Enabled","Draw [Q] Range",true)
