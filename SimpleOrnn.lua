@@ -334,7 +334,7 @@ function Ornn.LogicQ()
     end
     for k, minion in pairs(minionsQ) do
       local qPred = Ornn.Q:GetPrediction(minion)
-      local delay = (Player:Distance(minion.Position)/Ornn.Q.Speed + Ornn.Q.Delay)*10
+      local delay = (Player:Distance(minion.Position)/Ornn.Q.Speed + Ornn.Q.Delay)
       local hpPred = HPred.GetHealthPrediction(minion,delay,false)
       if qPred and hpPred > 0 and hpPred < Ornn.GetDamageQ(minion) then
         if Ornn.Q:Cast(qPred.CastPosition) then return true end
@@ -456,11 +456,6 @@ function Ornn.LogicR()
   return false
 end
 
-function Ornn.Jungle()
-
-  return false
-end
-
 function Ornn.GetDamageQ(target)
   local playerAI = Player.AsAI
   local dmgQ = -5 + 25 * Player:GetSpell(SpellSlots.Q).Level
@@ -576,11 +571,8 @@ function Ornn.OnUpdate()
   if Utils.NoLag(3) and Ornn.Q:IsReady() and Menu.Get("autoQ") and not Orbwalker.IsWindingUp() then
     if Ornn.LogicQ() then return true end
   end
-  if Utils.NoLag(4) then
-    if Ornn.W:IsReady() and Menu.Get("autoW") and not Orbwalker.IsWindingUp() then
-      if Ornn.LogicW() then return true end
-    end
-    if Ornn.Jungle() then return true end
+  if Utils.NoLag(4) and Ornn.W:IsReady() and Menu.Get("autoW") and not Orbwalker.IsWindingUp() then
+    if Ornn.LogicW() then return true end
   end
   local OrbwalkerMode = Orbwalker.GetMode()
   if OrbwalkerMode == "Combo" then
