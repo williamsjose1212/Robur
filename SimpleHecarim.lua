@@ -399,10 +399,10 @@ function Hecarim.LogicR()
       end
     end
     if Menu.Get("autoR") and Utils.IsValidTarget(TS:GetTarget(Hecarim.R.Range,false)) then
-      if rPred1 and hitCount1 >= 3 and rPred1.HitChanceEnum >= HitChanceEnum.Medium and Utils.CountHeroes(rPosC,1000,"ally") > 0 then
+      if rPred1 and hitCount1 >= 3 and rPred1.HitChanceEnum >= HitChanceEnum.Medium and Utils.CountHeroes(rPosC,1000,"ally") > 1 then
         if Hecarim.R:Cast(rPosC) then return true end
       end
-      if rPred2 and hitCount2 >= 3 and rPred2.HitChanceEnum >= HitChanceEnum.Medium and Utils.CountHeroes(rPosL,1000,"ally") > 0 then
+      if rPred2 and hitCount2 >= 3 and rPred2.HitChanceEnum >= HitChanceEnum.Medium and Utils.CountHeroes(rPosL,1000,"ally") > 1 then
         if Hecarim.R:Cast(rPosL) then return true end
       end
     end
