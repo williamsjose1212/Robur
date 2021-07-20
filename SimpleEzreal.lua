@@ -299,7 +299,7 @@ function Utils.IsUnderTurret(target)
   return false
 end
 function Utils.CanMove(target)
-  if Utils.HasBuffType(target,BuffTypes.Charm) or Utils.HasBuffType(target,BuffTypes.Snare) or target.MoveSpeed < 50 or Utils.HasBuffType(target,BuffTypes.Stun) or Utils.HasBuffType(target,BuffTypes.Suppression) or Utils.HasBuffType(target,BuffTypes.Taunt) or Utils.HasBuffType(target,BuffTypes.Fear) or Utils.HasBuffType(target,BuffTypes.Knockup) or Utils.HasBuffType(target,BuffTypes.Knockback) then
+  if Utils.HasBuffType(target,BuffTypes.Charm) or Utils.HasBuffType(target,BuffTypes.Snare) or Utils.HasBuffType(target,BuffTypes.Stun) or Utils.HasBuffType(target,BuffTypes.Suppression) or Utils.HasBuffType(target,BuffTypes.Taunt) or Utils.HasBuffType(target,BuffTypes.Fear) or Utils.HasBuffType(target,BuffTypes.Knockup) or Utils.HasBuffType(target,BuffTypes.Knockback) then
     return false
   else
     return true
@@ -366,10 +366,10 @@ function Ezreal.LogicQ()
     for k, minion in pairs(minionsQ) do
       local qPred = Prediction.GetPredictedPosition(minion, Ezreal.Q, Player.Position)
       if qPred ~= nil and qPred.HitChanceEnum >= HitChanceEnum.High then
-        local delay = (Player:Distance(minion.Position)/ Ezreal.Q.Speed + Ezreal.Q.Delay)*1000
+        local delay = (Player:Distance(minion.Position)/ Ezreal.Q.Speed + Ezreal.Q.Delay)
         local hpPred = HPred.GetHealthPrediction(minion,delay,false)
         if hpPred > 20 then
-          if minion.Health < Ezreal.Q:GetDamage(minion) and Player:Distance(minion.Position) <= Orbwalker.GetTrueAutoAttackRange() and not Orbwalker.IsWindingUp() then
+          if hpPred < Ezreal.Q:GetDamage(minion) and Player:Distance(minion.Position) <= Orbwalker.GetTrueAutoAttackRange() and not Orbwalker.IsWindingUp() then
             if Ezreal.Q:Cast(qPred.CastPosition) then return true end
           elseif (minion.Health/minion.MaxHealth)*100 > 80 and Menu.Get("WaveClear.Qpush") and not Orbwalker.IsWindingUp() then
             if Ezreal.Q:Cast(qPred.CastPosition) then return true end
@@ -382,9 +382,9 @@ function Ezreal.LogicQ()
     for k, minion in pairs(minionsQ) do
       local qPred = Prediction.GetPredictedPosition(minion, Ezreal.Q, Player.Position)
       if qPred ~= nil and qPred.HitChanceEnum >= HitChanceEnum.High and Player:Distance(minion.Position) > Orbwalker.GetTrueAutoAttackRange() then
-        local delay = (Player:Distance(minion.Position)/ Ezreal.Q.Speed + Ezreal.Q.Delay)*1000
+        local delay = (Player:Distance(minion.Position)/ Ezreal.Q.Speed + Ezreal.Q.Delay)
         local hpPred = HPred.GetHealthPrediction(minion,delay,false)
-        if hpPred > 0 and minion.Health < Ezreal.Q:GetDamage(minion) then
+        if hpPred > 0 and hpPred < Ezreal.Q:GetDamage(minion) then
           if Ezreal.Q:Cast(qPred.CastPosition) then return true end
         end
       end
