@@ -304,7 +304,7 @@ end
 
 function Morgana.LogicQ()
   local target = TS:GetTarget(Morgana.Q.Range,false)
-  if Combo and Utils.IsValidTarget(target) then
+  if (Combo or Harass) and Utils.IsValidTarget(target) then
     local qPred = Morgana.Q:GetPrediction(target)
     if qPred and qPred.HitChanceEnum >= HitChanceEnum.High then
       if Morgana.Q:Cast(qPred.CastPosition) then return true end
@@ -326,7 +326,7 @@ function Morgana.LogicW()
   local target = TS:GetTarget(Morgana.W.Range)
   if Utils.IsValidTarget(target) then
     local predW = Morgana.W:GetPrediction(target)
-    if Combo and predW and Player.Mana > qMana + wMana + eMana + rMana and predW.HitChanceEnum >= HitChanceEnum.VeryHigh and not target.IsZombie then
+    if (Combo or Harass) and predW and Player.Mana > qMana + wMana + eMana + rMana and predW.HitChanceEnum >= HitChanceEnum.VeryHigh and not target.IsZombie then
       if Morgana.W:Cast(predW.CastPosition) then return true end
     end
   end
