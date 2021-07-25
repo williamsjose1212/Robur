@@ -597,7 +597,7 @@ end
 
 function Aphelios.LogicW()
   local qTarget = TS:GetTarget(Aphelios.Q1.Range+500)
-  if None then return false end
+  if None or Laneclear then return false end
   if Utils.IsValidTarget(qTarget) then
     if qTarget:Distance(Player.Position) > range then
       if q1Ready and Utils.HasBuff(Player,CalibrumOff) then
