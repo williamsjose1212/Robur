@@ -294,7 +294,7 @@ function Utils.IsUnderTurret(target)
 end
 
 function Utils.CanMove(target)
-  if Utils.HasBuffType(target,BuffTypes.Charm) or Utils.HasBuffType(target,BuffTypes.Snare) or target.MoveSpeed < 50 or Utils.HasBuffType(target,BuffTypes.Stun) or Utils.HasBuffType(target,BuffTypes.Suppression) or Utils.HasBuffType(target,BuffTypes.Taunt) or Utils.HasBuffType(target,BuffTypes.Fear) or Utils.HasBuffType(target,BuffTypes.Knockup) or Utils.HasBuffType(target,BuffTypes.Knockback) then
+  if Utils.HasBuffType(target,BuffTypes.Charm) or Utils.HasBuffType(target,BuffTypes.Snare) or Utils.HasBuffType(target,BuffTypes.Stun) or Utils.HasBuffType(target,BuffTypes.Suppression) or Utils.HasBuffType(target,BuffTypes.Taunt) or Utils.HasBuffType(target,BuffTypes.Fear) or Utils.HasBuffType(target,BuffTypes.Knockup) or Utils.HasBuffType(target,BuffTypes.Knockback) then
     return false
   else
     return true
@@ -312,11 +312,11 @@ end
 function Ornn.LogicQ()
   local target = TS:GetTarget(Ornn.Q.Range)
   if Utils.IsValidTarget(target) then
-    if (Combo and Player.Mana > wMana + qMana) or (Harass and Menu.Get("ManaSlider") <= Player.ManaPercent * 100 and Menu.Get("qHarass")) then
+    if (Combo and Player.Mana > wMana + qMana and not Ornn.UltCharge()) or (Harass and Menu.Get("ManaSlider") <= Player.ManaPercent * 100 and Menu.Get("qHarass") and not Ornn.UltCharge()) then
       local qPred = Ornn.Q:GetPrediction(target)
       if not Utils.CanMove(target) then
         if Ornn.Q:Cast(target.Position) then return true end
-      elseif qPred and qPred.HitChanceEnum >= HitChanceEnum.High then
+      elseif qPred and qPred.HitChanceEnum >= HitChanceEnum.VeryHigh then
         if Ornn.Q:Cast(qPred.CastPosition) then return true end
       end
     end
@@ -346,7 +346,7 @@ end
 
 function Ornn.LogicW()
   local target = TS:GetTarget(Ornn.W.Range)
-  if Utils.IsValidTarget(target) and not Utils.HasBuff(target,"OrnnVulnerableDebuff") then
+  if Utils.IsValidTarget(target) and not Utils.HasBuff(target,"OrnnVulnerableDebuff") and not Ornn.UltCharge() and (Player:Distance(target.Position) <= Orbwalker.GetTrueAutoAttackRange(Player)+Player.BoundingRadius or (target.Health/target.MaxHealth) * 100 < 30) then
     if (Combo and Player.Mana > wMana) or ((Harass or Laneclear) and Menu.Get("ManaSlider") <= Player.ManaPercent * 100) then
       local wPred = Ornn.W:GetPrediction(target)
       if not Utils.CanMove(target) then
@@ -362,16 +362,16 @@ end
 function Ornn.LogicE()
   local target = TS:GetTarget(Ornn.E.Range)
   if Utils.IsValidTarget(target) then
-    if (Combo and Player.Mana > wMana + eMana) or (Harass and Menu.Get("ManaSlider") <= Player.ManaPercent * 100 and not Utils.IsUnderTurret(target)) then
+    if (Combo and Player.Mana > wMana + eMana and not Ornn.UltCharge()) or (Harass and Menu.Get("ManaSlider") <= Player.ManaPercent * 100 and not Utils.IsUnderTurret(target) and not Ornn.UltCharge()) then
       local ePred = Ornn.E:GetPrediction(target)
-      if ePred and ePred.HitChanceEnum >= HitChanceEnum.High then
+      if ePred and ePred.HitChanceEnum >= HitChanceEnum.VeryHigh then
         local tPos = ePred.TargetPosition
         for k,v in pairs(qPillar) do
-          if tPos:Distance(v.Position) <= 360 and Player:Distance(v.Position) <= Ornn.E.Range then
+          if tPos:Distance(v.Position) < 350 and Player:Distance(v.Position) <= Ornn.E.Range then
             if Ornn.E:Cast(v.Position) then return true end
           end
         end
-        if Ornn.NearWall(target,tPos) then
+        if Ornn.NearWall(target,tPos) and not Harass then
           if Ornn.E:Cast(Ornn.NearWall(target,tPos)) then return true end
         end
         if Ornn.GetDamageE(target) + Ornn.GetDamageW(target) > target.Health and Utils.CountEnemiesInRange(tPos, 900) < 3 and not Utils.IsUnderTurret(target) then
@@ -384,13 +384,13 @@ function Ornn.LogicE()
 end
 
 function Ornn.NearWall(target,pos)
-  local eCircle = Geometry.Circle(pos, 150)
+  local eCircle = Geometry.Circle(pos, 130)
   local eCirclePoints = eCircle:GetPoints(20)
   local ePoints = {}
 
   for i,point in ipairs(eCirclePoints) do
     local dist = point:Distance(pos)
-    if point:IsWall() and dist <= Ornn.E.Range then
+    if point:IsWall() and dist < Ornn.E.Range then
       table.insert(ePoints, point)
     end
   end
@@ -439,15 +439,15 @@ function Ornn.LogicR()
     local rPred = Ornn.R:GetPrediction(target)
     local rPos , hitCount = Ornn.R:GetBestLinearCastPos(enemies)
     if Utils.CountHeroes(Player,1200,"ally") > 1 and Menu.Get("autoRaoe") then
-      if not Ornn.UltCharge() and rPred and rPred.HitChanceEnum >= HitChanceEnum.VeryHigh and  hitCount > 2 then
+      if not Ornn.UltCharge() and rPred  and  hitCount > 2 then
         if Ornn.R:Cast(target) then return true end
       end
     end
     for k,v in pairs(rWave) do
-      if Player:Distance(v.Position) <= 350 then
-        if Ornn.UltCharge() and hitCount > 0 and hitCount < 2 and rPred and rPred.HitChanceEnum >= HitChanceEnum.Medium then
+      if Player:Distance(v.Position) <= 400 then
+        if Ornn.UltCharge() and hitCount > 0 and hitCount < 2 and rPred  then
           if Ornn.R:Cast(rPred.CastPosition) then return true end
-        elseif Ornn.UltCharge() and hitCount >= 2 and rPred and rPred.HitChanceEnum >= HitChanceEnum.Medium then
+        elseif Ornn.UltCharge() and hitCount >= 2 and rPred then
           if Ornn.R:Cast(rPos) then return true end
         end
       end
