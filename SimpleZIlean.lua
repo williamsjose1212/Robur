@@ -57,7 +57,7 @@ Zilean.Q = SpellLib.Skillshot({
   Slot = Enums.SpellSlots.Q,
   Range = 900,
   Speed = 2000,
-  Radius = 100,
+  Radius = 140,
   Type = "Circular",
   Collisions = {WindWall = true},
   Delay = 0.25,
@@ -307,7 +307,7 @@ function Zilean.LogicQ()
     local target = TS:GetTarget(Zilean.Q.Range,false)
     if Utils.IsValidTarget(target) then
       local qPred = Zilean.Q:GetPrediction(target)
-      if qPred and qPred.HitChanceEnum >= HitChanceEnum.High then
+      if qPred and qPred.HitChanceEnum >= HitChanceEnum.VeryHigh then
         if Zilean.Q:Cast(qPred.TargetPosition) then return true end
       end
     end
@@ -402,15 +402,11 @@ function Zilean.LogicR()
   if Menu.Get("Misc.AutoR") and Player.Mana > rMana then
     for k, v in pairs(ObjectManager.GetNearby("ally","heroes")) do
       local ally = v.AsHero
-      local incomingDamage = HPred.GetDamagePrediction(ally,2,false)
-      local pre = HPred.GetHealthPrediction(ally,0.5,true)
+      local incomingDamage = HPred.GetDamagePrediction(ally,1,false)
       local enemies = Utils.CountEnemiesInRange(ally,700)
-      if Zilean.R:IsInRange(ally) and Menu.Get("1" .. ally.CharName) and ally.Health - incomingDamage < enemies * ally.Level * 50 and Utils.ValidUlt(ally) then
+      if Zilean.R:IsInRange(ally) and Menu.Get("1" .. ally.CharName) and ally.Health - incomingDamage < enemies * ally.Level * 45 and Utils.ValidUlt(ally) then
         if Zilean.R:Cast(ally) then return true end
-      elseif Zilean.R:IsInRange(ally) and Menu.Get("1" .. ally.CharName) and ally.Health - incomingDamage < ally.Level * 40 and Utils.ValidUlt(ally) then
-        if Zilean.R:Cast(ally) then return true end
-      end
-      if Zilean.R:IsInRange(ally) and Menu.Get("1" .. ally.CharName) and (pre/ally.MaxHealth) * 100 < 15 and Utils.CountEnemiesInRange(ally,600) > 0 and Utils.ValidUlt(ally) then
+      elseif Zilean.R:IsInRange(ally) and Menu.Get("1" .. ally.CharName) and ally.Health - incomingDamage < ally.Level * 35 and Utils.ValidUlt(ally) then
         if Zilean.R:Cast(ally) then return true end
       end
     end
