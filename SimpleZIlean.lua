@@ -56,8 +56,8 @@ local Qobj = {}
 Zilean.Q = SpellLib.Skillshot({
   Slot = Enums.SpellSlots.Q,
   Range = 900,
-  Speed = 2000,
-  Radius = 70,
+  Speed = 1800,
+  Radius = 140,
   Type = "Circular",
   Collisions = {WindWall = true},
   Delay = 0.25,
@@ -405,8 +405,6 @@ function Zilean.LogicR()
       local incomingDamage = HPred.GetDamagePrediction(ally,0,false)
       local enemies = Utils.CountEnemiesInRange(ally,700)
       if Zilean.R:IsInRange(ally) and Menu.Get("1" .. ally.CharName) and ally.Health - incomingDamage < enemies * ally.Level * 25 and Utils.ValidUlt(ally) then
-        if Zilean.R:Cast(ally) then return true end
-      elseif Zilean.R:IsInRange(ally) and Menu.Get("1" .. ally.CharName) and ally.Health - incomingDamage < ally.Level * 40 and Utils.ValidUlt(ally) then
         if Zilean.R:Cast(ally) then return true end
       end
     end
