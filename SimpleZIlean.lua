@@ -215,17 +215,16 @@ function Utils.CountEnemiesInRange(pos, range, t)
   return res
 end
 
-function Utils.CountHeroes(pos,Range,type)
+function Utils.CountHeroes(pos,range,team)
   local num = 0
-  for k, v in ipairs(ObjectManager.Get(type, "heroes")) do
+  for k, v in pairs(ObjectManager.Get(team, "heroes")) do
     local hero = v.AsHero
-    if hero and hero.IsTargetable and hero:Distance(pos.Position) < Range then
+    if hero.IsValid and not hero.IsDead and hero.IsTargetable and hero:Distance(pos) < range then
       num = num + 1
     end
   end
   return num
 end
-
 function Utils.IsValidTarget(Target)
   return Target and Target.IsTargetable and Target.IsAlive
 end
@@ -402,9 +401,9 @@ function Zilean.LogicR()
   if Menu.Get("Misc.AutoR") and Player.Mana > rMana then
     for k, v in pairs(ObjectManager.GetNearby("ally","heroes")) do
       local ally = v.AsHero
-      local incomingDamage = HPred.GetDamagePrediction(ally,0,false)
-      local enemies = Utils.CountEnemiesInRange(ally,700)
-      if Zilean.R:IsInRange(ally) and Menu.Get("1" .. ally.CharName) and ally.Health - incomingDamage < enemies * ally.Level * 25 and Utils.ValidUlt(ally) then
+      local incomingDamage = HPred.GetDamagePrediction(ally,1,false)
+      local enemies = Utils.CountHeroes(ally.Position,700,"enemy")
+      if Zilean.R:IsInRange(ally) and Menu.Get("1" .. ally.CharName) and ally.Health - incomingDamage < enemies * ally.Level * 45 and Utils.ValidUlt(ally) then
         if Zilean.R:Cast(ally) then return true end
       end
     end
