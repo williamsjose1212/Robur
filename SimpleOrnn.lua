@@ -352,7 +352,7 @@ function Ornn.LogicW()
       if not Utils.CanMove(target) then
         if Ornn.W:Cast(target.Position) then return true end
       elseif wPred and wPred.HitChanceEnum >= HitChanceEnum.VeryHigh then
-        if Ornn.W:Cast(wPred.TargetPosition) then return true end
+        if Ornn.W:Cast(wPred.CastPosition) then return true end
       end
     end
   end
@@ -367,7 +367,7 @@ function Ornn.LogicE()
       if ePred and ePred.HitChanceEnum >= HitChanceEnum.VeryHigh then
         local tPos = ePred.TargetPosition
         for k,v in pairs(qPillar) do
-          if tPos:Distance(v.Position) < 350 and Player:Distance(v.Position) <= Ornn.E.Range then
+          if tPos:Distance(v.Position) < 360 and Player:Distance(v.Position) <= Ornn.E.Range then
             if Ornn.E:Cast(v.Position) then return true end
           end
         end
@@ -384,13 +384,14 @@ function Ornn.LogicE()
 end
 
 function Ornn.NearWall(target,pos)
-  local eCircle = Geometry.Circle(pos, 130)
-  local eCirclePoints = eCircle:GetPoints(20)
+  local distW = Ornn.E.Radius
+  local eCircle = Geometry.Circle(pos, distW)
+  local eCirclePoints = eCircle:GetPoints(10)
   local ePoints = {}
 
   for i,point in ipairs(eCirclePoints) do
     local dist = point:Distance(pos)
-    if point:IsWall() and dist < Ornn.E.Range then
+    if point:IsWall() and point:Distance(Player.Position) < Ornn.E.Range and dist < 360 then
       table.insert(ePoints, point)
     end
   end
