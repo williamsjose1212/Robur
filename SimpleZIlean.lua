@@ -375,7 +375,7 @@ end
 function Zilean.LogicE()
   if (Combo and Menu.Get("Combo.E") and Player.Mana > qMana+eMana+wMana+rMana) or (Harass and Menu.Get("Harass.E") and Player.Mana > (eMana + qMana + wMana+rMana)*2) then
     for k, enemy in ipairs(Utils.GetTargets(Zilean.E)) do
-      if Utils.HasQZileanBuff(enemy) or not Zilean.Q:IsReady() then
+      if Utils.HasQZileanBuff(enemy) or Zilean.Q:IsReady() then
         if Zilean.E:Cast(enemy) then return true end
       end
     end
