@@ -124,6 +124,10 @@ function Utils.GetTargets(Spell)
   return TS:GetTargets(Spell.Range,true)
 end
 
+function Utils.IsValidTarget(Target)
+  return Target and Target.IsTargetable and Target.IsAlive
+end
+
 function Utils.GetTargetsRange(Range)
   return {TS:GetTarget(Range,true)}
 end
@@ -150,6 +154,22 @@ function Utils.Count(spell)
     end
   end
   return num
+end
+
+function Utils.CanHit(target,spell)
+  if Utils.IsValidTarget(target) then
+    local pred = target:FastPrediction(spell.CastDelay)
+    if pred == nil then return false end
+    if spell.LineWidth > 0 then
+      local powCalc = (spell.LineWidth + target.BoundingRadius)^2
+      if (pred:LineDistance(spell.StartPos,spell.EndPos,true) <= powCalc) or (target.Position:LineDistance(spell.StartPos,spell.EndPos,true) <= powCalc) then
+        return true
+      end
+    elseif target:Distance(spell.EndPos) < 50 + target.BoundingRadius or pred:Distance(spell.EndPos) < 50 + target.BoundingRadius then
+      return true
+    end
+  end
+  return false
 end
 
 function Utils.hasValue(tab,val)
@@ -382,6 +402,20 @@ function Ivern.Logic.Auto()
         local incomingDamage = HPred.GetDamagePrediction(v.AsAI,2,false)
         if Ivern.E:IsInRange(v) and incomingDamage >= v.AsAI.Health * 0.2 then
           if Ivern.E:Cast(v) then return true end
+        end
+      end
+    end
+  end
+  return false
+end
+
+function Ivern.OnProcessSpell(sender,spell)
+  if sender.IsHero and sender.IsEnemy and Menu.Get("AutoE") and not spell.IsBasicAttack then
+    for _, v in pairs(ObjectManager.GetNearby("ally","heroes")) do
+      local ally = v.AsHero
+      if Ivern.E:IsInRange(ally) and Player:Distance(spell.EndPos) <= Ivern.E.Range and Menu.Get("1" .. ally.CharName) then
+        if  Utils.CanHit(ally,spell) and Player.Mana > eMana and Ivern.E:IsReady() then
+          if Ivern.E:Cast(ally) then return true end
         end
       end
     end
