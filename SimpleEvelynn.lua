@@ -207,26 +207,26 @@ function Utils.CountHeroes(pos,range,team)
 end
 
 function Utils.GetDamage(target)
-	local dmg = 0
-	local bonusdmg = 1
+  local dmg = 0
+  local bonusdmg = 1
   if target.Health/target.MaxHealth * 100 < 30 then
-		bonusdmg = 2.4
+    bonusdmg = 2.4
   end
-	if Evelynn.Q:IsReady() or isq2 then
-		dmg = dmg + Evelynn.Q2:GetDamage(target)*3
-	end 
-	if Evelynn.E:IsReady() then
-		dmg = dmg + Evelynn.E:GetDamage(target)
-	end
-	if Evelynn.R:IsReady() then 
-		dmg = dmg + Evelynn.R:GetDamage(target)*bonusdmg
-	end
-	return dmg
+  if Evelynn.Q:IsReady() or isq2 then
+    dmg = dmg + Evelynn.Q2:GetDamage(target)*3
+  end
+  if Evelynn.E:IsReady() then
+    dmg = dmg + Evelynn.E:GetDamage(target)
+  end
+  if Evelynn.R:IsReady() then
+    dmg = dmg + Evelynn.R:GetDamage(target)*bonusdmg
+  end
+  return dmg
 end
 
 function Utils.WaitForW(enemy)
   if not Menu.Get("Combo.WaitW") then return false end
-	if Utils.GetDamage(enemy) > enemy.Health then return false end
+  if Utils.GetDamage(enemy) > enemy.Health then return false end
   local target = enemy.AsAI
   if target ~= nil and target.IsValid then
     local eveWbuff = target:GetBuff("EvelynnW")
@@ -238,7 +238,7 @@ function Utils.WaitForW(enemy)
 end
 
 function Utils.IsValidTarget(Target)
-	return Target and Target.IsTargetable and Target.IsAlive
+  return Target and Target.IsTargetable and Target.IsAlive
 end
 
 function Evelynn.Logic.Combo()
@@ -253,14 +253,14 @@ function Evelynn.Logic.Combo()
     else
       target = TS:GetTarget(Evelynn.Q2.Range,false)
     end
-		if Utils.IsValidTarget(target) then
+    if Utils.IsValidTarget(target) then
       if Utils.WaitForW(target) then return false end
       if isq2 then
         if Evelynn.Q2:Cast(target) then return true end
       else
         local qPred = Evelynn.Q:GetPrediction(target)
         if qPred ~= nil and qPred.HitChanceEnum >= HitChanceEnum.Medium and (not Evelynn.W:IsReady() or Player.Mana < qMana + eMana + rMana or Player:Distance(target.Position) < 600 or Utils.GetDamage(target) > target.Health) and Game.GetTime() - LastW > 1  then
-					if Evelynn.Q:Cast(qPred.CastPosition) then return true end
+          if Evelynn.Q:Cast(qPred.CastPosition) then return true end
         end
       end
     end
@@ -268,9 +268,9 @@ function Evelynn.Logic.Combo()
   if MenuValueE and Player.Mana > eMana and Evelynn.E:IsReady() then
     for k, enemy in pairs(Utils.GetTargets(Evelynn.E)) do
       if Utils.WaitForW(enemy) then return false end
-			if Utils.IsValidTarget(enemy) then
-				if Evelynn.E:Cast(enemy) then return true end
-			end
+      if Utils.IsValidTarget(enemy) then
+        if Evelynn.E:Cast(enemy) then return true end
+      end
     end
   end
   if MenuValueW and Player.Mana > qMana + eMana + rMana and Evelynn.W:IsReady() then
@@ -288,9 +288,9 @@ function Evelynn.Logic.Combo()
       end
       if Evelynn.R:IsReady() and enemy.Health < Evelynn.R:GetDamage(enemy)*bonusdmg and Player:Distance(enemy.Position) < Evelynn.R.Range then return false end
       if Evelynn.E:IsReady() and Player:Distance(enemy.Position) < Evelynn.E.Range then return false end
-			if Utils.IsValidTarget(enemy) then
-				if Evelynn.W:Cast(enemy) then return true end
-			end
+      if Utils.IsValidTarget(enemy) then
+        if Evelynn.W:Cast(enemy) then return true end
+      end
     end
   end
   if MenuValueR and Player.Mana > rMana and Evelynn.R:IsReady() then
@@ -325,20 +325,20 @@ function Evelynn.Logic.Harass()
   local MenuValueW = Menu.Get("Harass.W")
   local MenuValueE = Menu.Get("Harass.E")
   local target = nil
-if MenuValueQ and Player.Mana > qMana and Evelynn.Q:IsReady() then
+  if MenuValueQ and Player.Mana > qMana and Evelynn.Q:IsReady() then
     if not isq2 then
       target = TS:GetTarget(Evelynn.Q.Range)
     else
       target = TS:GetTarget(Evelynn.Q2.Range,false)
     end
-		if Utils.IsValidTarget(target) then
+    if Utils.IsValidTarget(target) then
       if Utils.WaitForW(target) then return false end
       if isq2 then
         if Evelynn.Q2:Cast(target) then return true end
       else
         local qPred = Evelynn.Q:GetPrediction(target)
         if qPred ~= nil and Utils.IsValidTarget(target) and qPred.HitChanceEnum >= HitChanceEnum.Medium and (not Evelynn.W:IsReady() or Player.Mana < qMana + eMana + rMana or Player:Distance(target.Position) < 600 or Utils.GetDamage(target) > target.Health) and Game.GetTime() - LastW > 1  then
-					if Evelynn.Q:Cast(qPred.CastPosition) then return true end
+          if Evelynn.Q:Cast(qPred.CastPosition) then return true end
         end
       end
     end
@@ -346,9 +346,9 @@ if MenuValueQ and Player.Mana > qMana and Evelynn.Q:IsReady() then
   if MenuValueE and Player.Mana > eMana and Evelynn.E:IsReady() then
     for k, enemy in pairs(Utils.GetTargets(Evelynn.E)) do
       if Utils.WaitForW(enemy) then return false end
-			if Utils.IsValidTarget(enemy) then
-				if Evelynn.E:Cast(enemy) then return true end
-			end
+      if Utils.IsValidTarget(enemy) then
+        if Evelynn.E:Cast(enemy) then return true end
+      end
     end
   end
   if MenuValueW and Player.Mana > qMana + eMana + rMana and Evelynn.W:IsReady() then
@@ -366,9 +366,9 @@ if MenuValueQ and Player.Mana > qMana and Evelynn.Q:IsReady() then
       end
       if Evelynn.R:IsReady() and enemy.Health < Evelynn.R:GetDamage(enemy)*bonusdmg and Player:Distance(enemy.Position) < Evelynn.R.Range then return false end
       if Evelynn.E:IsReady() and Player:Distance(enemy.Position) < Evelynn.E.Range then return false end
-			if Utils.IsValidTarget(enemy) then
-				if Evelynn.W:Cast(enemy) then return true end
-			end
+      if Utils.IsValidTarget(enemy) then
+        if Evelynn.W:Cast(enemy) then return true end
+      end
     end
   end
 
@@ -428,24 +428,24 @@ function Evelynn.Logic.Waveclear()
 end
 
 function Evelynn.Logic.Auto()
-	for k, hero in pairs(ObjectManager.GetNearby("enemy", "heroes")) do
-		local enemy = hero.AsAI
-		if Evelynn.Q:IsReady() or isq2 and Player.Mana > qMana and Evelynn.Q2:IsInRange(enemy) then
-			local enemy = hero.AsAI
-			local delay = (Player:Distance(enemy.Position)/ Evelynn.Q.Speed + Evelynn.Q.Delay)*1000
-			local hpPred = HPred.GetHealthPrediction(enemy,delay,false)
-			if hpPred < Evelynn.Q2:GetDamage(enemy) + Evelynn.E:GetDamage(enemy) and Utils.IsValidTarget(enemy) then
-				overkill = Game.GetTime()
-			end
-		end
-		if Evelynn.E:IsReady() and Player.Mana > eMana and Evelynn.E:IsInRange(enemy) then
-			local delay = (Player:Distance(enemy.Position)/ Evelynn.E.Delay)*1000
-			local hpPred = HPred.GetHealthPrediction(enemy,delay,false)
-			if hpPred < Evelynn.E:GetDamage(enemy) and Utils.IsValidTarget(enemy) then
-				overkill = Game.GetTime()
-			end
-		end
-	end
+  for k, hero in pairs(ObjectManager.GetNearby("enemy", "heroes")) do
+    local enemy = hero.AsAI
+    if Evelynn.Q:IsReady() or isq2 and Player.Mana > qMana and Evelynn.Q2:IsInRange(enemy) then
+      local enemy = hero.AsAI
+      local delay = (Player:Distance(enemy.Position)/ Evelynn.Q.Speed + Evelynn.Q.Delay)*1000
+      local hpPred = HPred.GetHealthPrediction(enemy,delay,false)
+      if hpPred < Evelynn.Q2:GetDamage(enemy) + Evelynn.E:GetDamage(enemy) and Utils.IsValidTarget(enemy) then
+        overkill = Game.GetTime()
+      end
+    end
+    if Evelynn.E:IsReady() and Player.Mana > eMana and Evelynn.E:IsInRange(enemy) then
+      local delay = (Player:Distance(enemy.Position)/ Evelynn.E.Delay)*1000
+      local hpPred = HPred.GetHealthPrediction(enemy,delay,false)
+      if hpPred < Evelynn.E:GetDamage(enemy) and Utils.IsValidTarget(enemy) then
+        overkill = Game.GetTime()
+      end
+    end
+  end
   if Menu.Get("CastR") and Evelynn.R:IsReady() and Player.Mana > rMana then
     for k, enemy in pairs(Utils.GetTargets(Evelynn.R)) do
       local rPred = Evelynn.R:GetPrediction(enemy)
@@ -455,20 +455,20 @@ function Evelynn.Logic.Auto()
     end
   end
   if Menu.Get("AutoR") and Evelynn.R:IsReady() and Player.Mana > rMana then
-		local enemies = {}
-		for k, enemy in pairs(ObjectManager.Get("enemy", "heroes")) do
-			local target = enemy.AsHero
-			local pos = target:FastPrediction(Game.GetLatency() + Evelynn.R.Delay)
-			if Utils.IsValidTarget(target) and Player:Distance(target.Position) <= 550 then
-				table.insert(enemies, target.Position)
-			end
-		end
+    local enemies = {}
+    for k, enemy in pairs(ObjectManager.Get("enemy", "heroes")) do
+      local target = enemy.AsHero
+      local pos = target:FastPrediction(Game.GetLatency() + Evelynn.R.Delay)
+      if Utils.IsValidTarget(target) and Player:Distance(target.Position) <= 550 then
+        table.insert(enemies, target.Position)
+      end
+    end
     local rCastPos, hitCount = Evelynn.R:GetBestCircularCastPos(enemies,Evelynn.R.Radius)
     if rCastPos ~= nil and hitCount >= Menu.Get("HitcountR") then
       if Evelynn.R:Cast(rCastPos) then return true end
     end
   end
-	if Player.Mana > rMana and Evelynn.R:IsReady() and Menu.Get("AutoRKS") then
+  if Player.Mana > rMana and Evelynn.R:IsReady() and Menu.Get("AutoRKS") then
     for k, enemy in pairs(ObjectManager.GetNearby("enemy","heroes")) do
       local rPred = Evelynn.R:GetPrediction(enemy)
       local delay = (Player:Distance(enemy.Position)/ Evelynn.R.Speed + Evelynn.R.Delay)*1000
@@ -480,15 +480,15 @@ function Evelynn.Logic.Auto()
       if rPred ~= nil and hpPred < Evelynn.R:GetDamage(enemy)*bonusdmg and Utils.ValidUlt(enemy) and rPred.HitChanceEnum >= HitChanceEnum.High and Evelynn.R:IsInRange(enemy) and Utils.IsValidTarget(enemy) then
         if Evelynn.R:Cast(rPred.CastPosition) then return true end
       end
-		end
-	end
+    end
+  end
   return false
 end
 function Evelynn.OnProcessSpell(sender,spell)
-	if sender.IsMe and spell.Name == "EvelynnWApplyMark" and Menu.Get("Combo.WaitW") then
-		LastW = Game.GetTime()
-	end
-	return false
+  if sender.IsMe and spell.Name == "EvelynnWApplyMark" and Menu.Get("Combo.WaitW") then
+    LastW = Game.GetTime()
+  end
+  return false
 end
 function Evelynn.OnDraw()
   if Player.IsVisible and Player.IsOnScreen and not Player.IsDead then
@@ -563,7 +563,7 @@ function Evelynn.LoadMenu()
     Menu.ColoredText("Misc", 0xB65A94FF, true)
     Menu.Checkbox("AutoR", "Auto R HitCount", true)
     Menu.Slider("HitcountR", "HitCount", 3, 1, 5)
-		Menu.Checkbox("AutoRKS", "Auto R KS", false)
+    Menu.Checkbox("AutoRKS", "Auto R KS", false)
     Menu.Separator()
     Menu.ColoredText("Drawing", 0xB65A94FF, true)
     Menu.Checkbox("Drawing.Q.Enabled",   "Draw [Q] Range",true)
