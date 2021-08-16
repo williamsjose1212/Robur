@@ -50,6 +50,9 @@ local eMana = 0
 local rMana = 0
 local iTick = 0
 local Combo,Harass,Laneclear,None = false,false,false, false
+local beforeaa = false
+local Mark = "viegoqmark"
+local qCasted,wCasted,eCasted = false,false,false
 Viego.Q = SpellLib.Skillshot({
   Slot = SpellSlots.Q,
   Range = 600,
@@ -86,7 +89,7 @@ Viego.R = SpellLib.Skillshot({
   Range = 500,
   Delay = 0.6,
   Speed = math_huge,
-  Radius = 270,
+  Radius = 300,
   Type = "Circular",
   Key = "R"
 })
@@ -372,8 +375,10 @@ function Utils.NoLag(tick)
 end
 
 function Utils.CanKill(target,spell,dmg)
-  local predHp = HPred.GetHealthPrediction(target,spell.Delay,false)
-  if predHp < dmg then
+  local predHp = HPred.GetHealthPrediction(target,spell.Delay,true)
+  local incomingDamage = HPred.GetDamagePrediction(target,1,true)
+  local enemies = Utils.CountHeroes(target.Position,700,"ally")
+  if predHp <= dmg or target.Health - incomingDamage < enemies * target.Level * 15 then
     return true
   end
   return false
@@ -384,20 +389,20 @@ function Viego.LogicQ()
   local target2 = TS:GetTargets(Viego.Q.Range)
   if Utils.IsValidTarget(target) then
     local predQ = Viego.Q:GetPrediction(target)
-    if Combo and predQ and predQ.HitChanceEnum >= HitChanceEnum.High then
+    if Combo and predQ and predQ.HitChanceEnum >= HitChanceEnum.High and Viego.CanUseQ(target) then
       if Viego.Q:Cast(predQ.CastPosition) then return true end
     end
-    if Harass and predQ and predQ.HitChanceEnum >= HitChanceEnum.High and not Utils.IsUnderTurret(target) then
+    if Harass and predQ and predQ.HitChanceEnum >= HitChanceEnum.High and not Utils.IsUnderTurret(target) and Viego.CanUseQ(target) then
       if Viego.Q:Cast(predQ.CastPosition) then return true end
     end
   end
   for k, target in pairs(target2) do
     if Utils.IsValidTarget(target) then
       local predQ = Viego.Q:GetPrediction(target)
-      if Utils.CanKill(target,Viego.Q,Viego.GetDamageW(target)+Viego.GetDamageQ(target)) and predQ and predQ.HitChanceEnum >= HitChanceEnum.High then
+      if Utils.CanKill(target,Viego.Q,Viego.GetDamageQ(target)) and predQ and predQ.HitChanceEnum >= HitChanceEnum.High then
         if Viego.Q:Cast(predQ.CastPosition) then return true end
       end
-      if not Utils.CanMove(target) then
+      if not Utils.CanMove(target) and  Viego.CanUseQ(target) then
         if Viego.Q:Cast(target.Position) then return true end
       end
     end
@@ -405,12 +410,19 @@ function Viego.LogicQ()
   return false
 end
 
+function Viego.CanUseQ(target)
+  if not Player.Pathing.IsDashing and (not Utils.HasBuff(target,Mark) or Player:Distance(target.Position) > Orbwalker.GetTrueAutoAttackRange() + 150) and not Orbwalker.IsWindingUp() then
+    return true
+  else
+    return false
+  end
+end
 
 function Viego.LogicW()
   local target = TS:GetTarget(900)
   if Utils.IsValidTarget(target) then
     local wPred = Viego.W:GetPrediction(target)
-    if Combo and not Utils.HasBuff(Player,"ViegoW") then
+    if Combo and not Utils.HasBuff(Player,"ViegoW") and Viego.CanUseW(target) then
       if Viego.W:StartCharging() then return true end
     end
     if Combo and wPred and wPred.HitChanceEnum >= HitChanceEnum.High and Player:Distance(target.Position) < Viego.GetRangeW() and Viego.W.IsCharging then
@@ -418,6 +430,18 @@ function Viego.LogicW()
     end
   end
   return false
+end
+
+function Viego.CanUseW(target)
+  local wPred = Viego.W:GetPrediction(target)
+  if wPred then
+    local minionCollide = CollisionLib.SearchMinions(Player.Position,wPred.CastPosition,70,1500,0,1,"enemy").Result
+    if not Player.Pathing.IsDashing and (not Utils.HasBuff(target,Mark) or Player:Distance(target.Position) > Orbwalker.GetTrueAutoAttackRange() + 150) and (not minionCollide or Player:Distance(target.Position) > Viego.Q.Range) and not Orbwalker.IsWindingUp() then
+      return true
+    else
+      return false
+    end
+  end
 end
 
 function Viego.LogicE()
@@ -430,7 +454,7 @@ function Viego.LogicR()
   for k, target in pairs(target2) do
     if Utils.IsValidTarget(target) then
       local predR = Viego.R:GetPrediction(target)
-      if Utils.CanKill(target,Viego.R,Viego.GetDamageR(target) + 3 * DamageLib.GetAutoAttackDamage(target) + Viego.GetDamageQ(target) + Viego.GetDamageW(target)) and predR and predR.HitChanceEnum >= HitChanceEnum.Low then
+      if Utils.CanKill(target,Viego.R,Viego.GetDamageR(target)+DamageLib.GetAutoAttackDamage(target)*3+Viego.GetDamageQ(target)*2) and predR then
         if Viego.R:Cast(predR.CastPosition) then return true end
       end
     end
@@ -479,15 +503,15 @@ function Viego.Jungle()
     else
       local minionFocus = Utils.GetPriorityMinion(Player.Position, "neutral", 600)
       if minionFocus == nil then return false end
-      if minionFocus.IsEpicMinion then
+      if minionFocus.IsEpicMinion and Viego.CanUseQ(minionFocus) then
         if Viego.Q:IsReady() and Menu.Get("qFarm") then
           if Viego.Q:Cast(minionFocus.Position) then return true end
         end
-        if Viego.W:IsReady() and Menu.Get("wFarm") then
+        if Viego.W:IsReady() and Menu.Get("wFarm") and Viego.CanUseW(minionFocus) then
           if Viego.W:Cast(minionFocus.Position) then return true end
         end
       else
-        if Viego.Q:IsReady() and Menu.Get("qFarm") then
+        if Viego.Q:IsReady() and Menu.Get("qFarm") and Viego.CanUseQ(minionFocus) then
           if Viego.Q:Cast(Utils.LinearCastMinionPos(Player.Position, "neutral", 600,Viego.Q,125)) then return true end
         elseif Viego.W:IsReady() and Menu.Get("wFarm") and (not Viego.Q:IsReady() or minionFocus.IsScuttler) then
           if Viego.W:Cast(minionFocus.Position) then return true end
@@ -524,112 +548,94 @@ end
 
 function Viego.OnDrawDamage(target, dmgList)
   if Menu.Get("DrawDmg") then
-    table.insert(dmgList, Viego.GetDamageQ(target))
+    table.insert(dmgList, Viego.GetDamageQ(target)*2)
     table.insert(dmgList, Viego.GetDamageW(target))
     if Viego.R:IsReady() then
       table.insert(dmgList, Viego.GetDamageR(target))
     end
   end
 end
-
-function Viego.OnUpdate()
-  if not Utils.IsGameAvailable() then return false end
-  if Utils.NoLag(0) and Player:GetSpell(SpellSlots.Q).Name == "ViegoQ" then
-    if Viego.Jungle() then return true end
-  end
-  if Combo and Player:GetSpell(SpellSlots.Q).Name ~= "ViegoQ" then
+function Viego.PassiveCast()
+  if Combo and Utils.HasBuff(Player,"viegopassivetransform") then
     local qData = Player:GetSpell(SpellSlots.Q)
     local wData = Player:GetSpell(SpellSlots.W)
     local eData = Player:GetSpell(SpellSlots.E)
     local qTarget = TS:GetTarget(qData.CastRange)
     local wTarget = TS:GetTarget(wData.CastRange)
     local eTarget = TS:GetTarget(eData.CastRange)
-    if qData.CastRange == 0 then
-      if Input.Cast(SpellSlots.Q) then return true end
-    end
-    if wData.CastRange == 0 then
-      if Input.Cast(SpellSlots.W) then return true end
-    end
-    if eData.CastRange == 0 then
-      if Input.Cast(SpellSlots.E) then return true end
-    end
-    if Utils.IsValidTarget(qTarget) and Utils.NoLag(2) then
-      if qData.LineWidth > 0  and qData.LineWidth <= 200 then
-        Viego.Q2 = SpellLib.Skillshot({
-          Slot = SpellSlots.Q,
-          Range = qData.CastRange,
-          Delay = 0.4,
-          Radius = qData.LineWidth,
-          Speed = math_huge,
-          Type = "Linear",
-          Key = "Q"
-        })
-        local qPred = Viego.Q2:GetPrediction(qTarget)
-        if Viego.Q2:IsReady() and qPred and qPred.HitChanceEnum >= HitChanceEnum.High then
-          if Viego.Q2:Cast(qPred.CastPosition) then return true end
+    if Utils.NoLag(2) and Viego.Q:IsReady() and qData.RemainingCooldown == 0 then
+      if (qData.CastRange == 0 or qData.CastRadius == 0) or (qData.CastRadius > 0 and qData.MissileSpeed == 0) and not qCasted then
+        Input.Cast(SpellSlots.Q)
+        qCasted = true
+      end
+      if Utils.IsValidTarget(qTarget) then
+        if qData.LineWidth > 0 and qData.MissileSpeed > 0 and qData.CastRadius > 0 and not qCasted then
+          local qPred = qTarget:FastPrediction(0.4)
+          Input.Cast(SpellSlots.Q, qPred)
+          qCasted = true
+        elseif qData.MissileSpeed == 0 and not qCasted then
+          Input.Cast(SpellSlots.Q,qTarget)
+          qCasted = true
         end
-      elseif qData.LineWidth > 200 and qData.RemainingCooldown == 0 then
-        if Input.Cast(SpellSlots.Q,qTarget.Position) then return true end
-      elseif qData.RemainingCooldown == 0 then
-        if Input.Cast(SpellSlots.Q,qTarget) then return true end
       end
     end
-    if Utils.IsValidTarget(wTarget) and Utils.NoLag(4) then
-      local wPred = wTarget:FastPrediction(0.4)
-      if Player:GetSpell(SpellSlots.W).Name == "TaliyahW" then
-        if Input.Cast(SpellSlots.W,Player.Position,wPred) then return true end
-      elseif wData.LineWidth > 0 and wData.LineWidth <= 200 then
-        Viego.W2 = SpellLib.Skillshot({
-          Slot = SpellSlots.W,
-          Range = wData.CastRange,
-          Delay = 0.4,
-          Radius = wData.LineWidth,
-          Speed = math_huge,
-          Type = "Linear",
-          Key = "W"
-        })
-        local wPred = Viego.W2:GetPrediction(wTarget)
-        if Viego.W2:IsReady() and wPred and wPred.HitChanceEnum >= HitChanceEnum.High then
-          if Viego.W2:Cast(wPred.CastPosition) then return true end
+    if Utils.NoLag(4) and Viego.W:IsReady() and wData.RemainingCooldown == 0 then
+      if (wData.CastRange == 0 or wData.CastRadius == 0) or (wData.CastRadius > 0 and wData.MissileSpeed == 0) and not wCasted then
+        Input.Cast(SpellSlots.W)
+        wCasted = true
+      end
+      if Utils.IsValidTarget(wTarget)  then
+        if wData.LineWidth > 0 and wData.MissileSpeed > 0 and wData.CastRadius > 0 and not wCasted then
+          local wPred = wTarget:FastPrediction(0.4)
+          Input.Cast(SpellSlots.W, wPred)
+          wCasted = true
+          return true
+        elseif wData.MissileSpeed == 0 and not wCasted then
+          Input.Cast(SpellSlots.W,wTarget)
+          wCasted = true
         end
-      elseif wData.LineWidth > 200 and wData.RemainingCooldown == 0 then
-        if Input.Cast(SpellSlots.W,wTarget.Position) then return true end
-      elseif wData.RemainingCooldown == 0 then
-        if Input.Cast(SpellSlots.W,wTarget) then return true end
       end
     end
-    if Utils.IsValidTarget(eTarget) and Utils.NoLag(3) then
-      if eData.LineWidth > 0 and eData.LineWidth <= 200 then
-        Viego.E2 = SpellLib.Skillshot({
-          Slot = SpellSlots.E,
-          Range = eData.CastRange,
-          Delay = 0.4,
-          Radius = eData.LineWidth,
-          Speed = math_huge,
-          Type = "Linear",
-          Key = "E"
-        })
-        local ePred = Viego.E2:GetPrediction(eTarget)
-        if Viego.E2:IsReady() and ePred and ePred.HitChanceEnum >= HitChanceEnum.High then
-          if Viego.E2:Cast(ePred.CastPosition) then return true end
+    if Utils.NoLag(3) and Viego.E:IsReady() and eData.RemainingCooldown == 0 then
+      if (eData.CastRange == 0 or eData.CastRadius == 0) or (eData.CastRadius > 0 and eData.MissileSpeed == 0) and not eCasted then
+        Input.Cast(SpellSlots.E)
+        eCasted = true
+      end
+      if Utils.IsValidTarget(eTarget) then
+        if eData.LineWidth > 0 and eData.MissileSpeed > 0 and eData.CastRadius > 0 and not eCasted then
+          local ePred = eTarget:FastPrediction(0.4)
+          Input.Cast(SpellSlots.E, ePred)
+          eCasted = true
+        elseif eData.MissileSpeed == 0 and not eCasted then
+          Input.Cast(SpellSlots.E,eTarget)
+          eCasted = true
         end
-      elseif eData.LineWidth > 200 and eData.RemainingCooldown == 0 then
-        if Input.Cast(SpellSlots.E,eTarget.Position) and Input.Cast(SpellSlots.E) then return true end
-      elseif eData.RemainingCooldown == 0 then
-        if Input.Cast(SpellSlots.E,eTarget) and Input.Cast(SpellSlots.E) then return true end
       end
     end
+  end
+end
+
+function Viego.OnUpdate()
+  if not Utils.IsGameAvailable() then return false end
+  if not Utils.HasBuff(Player,"viegopassivetransform") then
+    qCasted = false
+    wCasted = false
+    eCasted = false
+  end
+  Viego.PassiveCast()
+  if Utils.NoLag(0) and not Utils.HasBuff(Player,"viegopassivetransform") then
+    if Viego.Jungle() then return true end
   end
   if Utils.NoLag(1) and Viego.R:IsReady() and Menu.Get("autoR") then
     if Viego.LogicR() then return true end
   end
-  if Utils.NoLag(2) and Viego.Q:IsReady() and Player:GetSpell(SpellSlots.Q).Name == "ViegoQ" and Menu.Get("autoQ") then
+  if Utils.NoLag(2) and Viego.Q:IsReady() and not Utils.HasBuff(Player,"viegopassivetransform") and Menu.Get("autoQ") then
     if Viego.LogicQ() then return true end
   end
-  if Utils.NoLag(3) and Viego.E:IsReady() and Player:GetSpell(SpellSlots.Q).Name == "ViegoQ" and Menu.Get("autoE") then
+  if Utils.NoLag(3) and Viego.E:IsReady() and not Utils.HasBuff(Player,"viegopassivetransform") and Menu.Get("autoE") then
     if Viego.LogicE() then return true end
   end
-  if Utils.NoLag(4) and Viego.W:IsReady() and Menu.Get("autoW") and Player:GetSpell(SpellSlots.Q).Name == "ViegoQ" then
+  if Utils.NoLag(4) and Viego.W:IsReady() and Menu.Get("autoW") and not Utils.HasBuff(Player,"viegopassivetransform") then
     if Viego.LogicW() then return true end
   end
   local OrbwalkerMode = Orbwalker.GetMode()
