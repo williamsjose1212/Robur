@@ -556,7 +556,7 @@ function Viego.OnDrawDamage(target, dmgList)
   end
 end
 function Viego.PassiveCast()
-  if Combo and Utils.HasBuff(Player,"viegopassivetransform") then
+  if Combo  then
     local qData = Player:GetSpell(SpellSlots.Q)
     local wData = Player:GetSpell(SpellSlots.W)
     local eData = Player:GetSpell(SpellSlots.E)
@@ -564,49 +564,48 @@ function Viego.PassiveCast()
     local wTarget = TS:GetTarget(wData.CastRange)
     local eTarget = TS:GetTarget(eData.CastRange)
     if Utils.NoLag(2) and Viego.Q:IsReady() and qData.RemainingCooldown == 0 then
-      if (qData.CastRange == 0 or qData.CastRadius == 0) or (qData.CastRadius > 0 and qData.MissileSpeed == 0) and not qCasted then
+      if qData.CastRange == 0 or (qData.CastRadius > 0 and qData.MissileSpeed == 0 and Utils.IsValidTarget(qTarget)) and not qCasted then
         Input.Cast(SpellSlots.Q)
         qCasted = true
       end
-      if Utils.IsValidTarget(qTarget) then
-        if qData.LineWidth > 0 and qData.MissileSpeed > 0 and qData.CastRadius > 0 and not qCasted then
+      if Utils.IsValidTarget(qTarget) and not qCasted then
+        if qData.LineWidth > 0 and qData.MissileSpeed > 0 and qData.CastRadius > 0  then
           local qPred = qTarget:FastPrediction(0.4)
           Input.Cast(SpellSlots.Q, qPred)
           qCasted = true
-        elseif qData.MissileSpeed == 0 and not qCasted then
+        elseif qData.MissileSpeed == 0 and qData.CastRadius == 0  then
           Input.Cast(SpellSlots.Q,qTarget)
           qCasted = true
         end
       end
     end
     if Utils.NoLag(4) and Viego.W:IsReady() and wData.RemainingCooldown == 0 then
-      if (wData.CastRange == 0 or wData.CastRadius == 0) or (wData.CastRadius > 0 and wData.MissileSpeed == 0) and not wCasted then
+      if wData.CastRange == 0 or (wData.CastRadius > 0 and wData.MissileSpeed == 0 and Utils.IsValidTarget(wTarget)) and not wCasted then
         Input.Cast(SpellSlots.W)
         wCasted = true
       end
-      if Utils.IsValidTarget(wTarget)  then
-        if wData.LineWidth > 0 and wData.MissileSpeed > 0 and wData.CastRadius > 0 and not wCasted then
+      if  Utils.IsValidTarget(wTarget) and not wCasted then
+        if wData.LineWidth > 0 and wData.MissileSpeed > 0 and wData.CastRadius > 0 then
           local wPred = wTarget:FastPrediction(0.4)
           Input.Cast(SpellSlots.W, wPred)
           wCasted = true
-          return true
-        elseif wData.MissileSpeed == 0 and not wCasted then
+        elseif wData.MissileSpeed == 0  and wData.CastRadius == 0 then
           Input.Cast(SpellSlots.W,wTarget)
           wCasted = true
         end
       end
     end
     if Utils.NoLag(3) and Viego.E:IsReady() and eData.RemainingCooldown == 0 then
-      if (eData.CastRange == 0 or eData.CastRadius == 0) or (eData.CastRadius > 0 and eData.MissileSpeed == 0) and not eCasted then
+      if eData.CastRange == 0  or (eData.CastRadius > 0 and eData.MissileSpeed == 0 and Utils.IsValidTarget(eTarget)) and not eCasted then
         Input.Cast(SpellSlots.E)
         eCasted = true
       end
-      if Utils.IsValidTarget(eTarget) then
-        if eData.LineWidth > 0 and eData.MissileSpeed > 0 and eData.CastRadius > 0 and not eCasted then
+      if Utils.IsValidTarget(eTarget) and not eCasted then
+        if eData.LineWidth > 0 and eData.MissileSpeed > 0 and eData.CastRadius > 0 then
           local ePred = eTarget:FastPrediction(0.4)
           Input.Cast(SpellSlots.E, ePred)
           eCasted = true
-        elseif eData.MissileSpeed == 0 and not eCasted then
+        elseif eData.MissileSpeed == 0 and eData.CastRadius == 0 then
           Input.Cast(SpellSlots.E,eTarget)
           eCasted = true
         end
@@ -617,25 +616,24 @@ end
 
 function Viego.OnUpdate()
   if not Utils.IsGameAvailable() then return false end
-  if not Utils.HasBuff(Player,"viegopassivetransform") then
+  if Player:GetSpell(SpellSlots.Q).Name == "ViegoQ" then
     qCasted = false
     wCasted = false
     eCasted = false
   end
-  Viego.PassiveCast()
-  if Utils.NoLag(0) and not Utils.HasBuff(Player,"viegopassivetransform") then
+  if Player:GetSpell(SpellSlots.Q).Name ~= "ViegoQ" and Menu.Get("CastT") then
+    Viego.PassiveCast()
+  end
+  if Utils.NoLag(0) and Player:GetSpell(SpellSlots.Q).Name == "ViegoQ" then
     if Viego.Jungle() then return true end
   end
   if Utils.NoLag(1) and Viego.R:IsReady() and Menu.Get("autoR") then
     if Viego.LogicR() then return true end
   end
-  if Utils.NoLag(2) and Viego.Q:IsReady() and not Utils.HasBuff(Player,"viegopassivetransform") and Menu.Get("autoQ") then
+  if Utils.NoLag(2) and Viego.Q:IsReady() and Player:GetSpell(SpellSlots.Q).Name == "ViegoQ"  and Menu.Get("autoQ") then
     if Viego.LogicQ() then return true end
   end
-  if Utils.NoLag(3) and Viego.E:IsReady() and not Utils.HasBuff(Player,"viegopassivetransform") and Menu.Get("autoE") then
-    if Viego.LogicE() then return true end
-  end
-  if Utils.NoLag(4) and Viego.W:IsReady() and Menu.Get("autoW") and not Utils.HasBuff(Player,"viegopassivetransform") then
+  if Utils.NoLag(4) and Viego.W:IsReady() and Menu.Get("autoW") and Player:GetSpell(SpellSlots.Q).Name == "ViegoQ"  then
     if Viego.LogicW() then return true end
   end
   local OrbwalkerMode = Orbwalker.GetMode()
@@ -673,13 +671,13 @@ function Viego.LoadMenu()
     Menu.Checkbox("autoQ", "Auto Q", false)
     Menu.ColoredText("> W", 0x118AB2FF, true)
     Menu.Checkbox("autoW", "Auto W", true)
-    Menu.ColoredText("> E", 0x0066CCFF, true)
-    Menu.Checkbox("autoE", "Auto E", true)
     Menu.ColoredText("> R", 0xB65A94FF, true)
     Menu.Checkbox("autoR", "Auto R", true)
     Menu.ColoredText("Farm", 0xB65A94FF, true)
     Menu.Checkbox("qFarm", "Q Farm", true)
     Menu.Checkbox("wFarm", "W Farm", true)
+    Menu.ColoredText("Misc", 0xB65A94FF, true)
+    Menu.Checkbox("CastT", "Auto Cast in Transformation(beta)", false)
     Menu.Separator()
     Menu.ColoredText("Drawing", 0xB65A94FF, true)
     Menu.Checkbox("Drawing.R.Enabled","Draw [R] Range",true)
