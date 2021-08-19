@@ -478,11 +478,8 @@ function Taliyah.OnGapclose(source,dash)
     local paths = dash:GetPaths()
     local endPos = paths[#paths].EndPos
     local startPos = paths[#paths].StartPos
-    for k, enemy in ipairs(Utils.GetTargetsRange(950)) do
-      local ePred = Taliyah.E:GetPrediction(enemy)
-      if Player:Distance(endPos) <= 450 then
-        if Taliyah.E:Cast(ePred.TargetPosition) then return true end
-      end
+    if Player:Distance(endPos) <= 800 then
+      if Taliyah.E:Cast(endPos) then return true end
     end
   end
   return false
@@ -498,8 +495,9 @@ end
 function Taliyah.OnCastStop(sender, spell)
   if sender.IsMe and spell.Name == "TaliyahWVC" and Menu.Get("autoE") then
     local wPos = spell.EndPos
+    local wDir = wPos + (Player.Position - wPos) : Normalized()
     if Taliyah.E:IsReady() and Player.Mana > eMana then
-      if Input.Cast(SpellSlots.E, wPos) then return true end
+      if Input.Cast(SpellSlots.E, wDir) then return true end
     end
   end
   return false
