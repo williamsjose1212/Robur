@@ -202,9 +202,22 @@ function Utils.LinearCastMinionPos(pos, type, maxRange,spell,width)
       table.insert(minions, minion.Position)
     end
   end
-  local spellPos, hitCount1 = spell:GetBestCircularCastPos(minions,width)
+  local spellPos, hitCount1 = spell:GetBestLinearCastPos(minions,width)
   return spellPos
 end
+
+function Utils.CircularCastMinionPos(pos, type, maxRange,spell,width)
+  local minions = {}
+  for k, v in pairs(ObjectManager.GetNearby(type, "minions")) do
+    local minion = v.AsMinion
+    if not minion.IsJunglePlant and minion.IsValid and not minion.IsDead and minion.IsTargetable and minion:Distance(pos) < maxRange then
+      table.insert(minions, minion.Position)
+    end
+  end
+  local spellPos, hitCount1 = spell:GetBestCircularCastPo(minions,width)
+  return spellPos
+end
+
 function Utils.Count(spell)
   local num = 0
   for k, v in ipairs(ObjectManager.GetNearby("enemy", "heroes")) do
