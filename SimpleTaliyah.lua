@@ -495,7 +495,7 @@ function Taliyah.OnInterruptibleSpell(source, spell, danger, endT, canMove)
   return false
 end
 
-function Taliyah.OnCastStop(sender, spell)
+function Taliyah.OnSpellCast(sender, spell)
   if sender.IsMe and spell.Name == "TaliyahWVC" and Menu.Get("autoE") then
     local wPos = spell.EndPos
     if Taliyah.E:IsReady() and Player.Mana > eMana then
