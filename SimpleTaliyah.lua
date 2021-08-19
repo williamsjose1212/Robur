@@ -487,7 +487,7 @@ end
 
 function Taliyah.OnInterruptibleSpell(source, spell, danger, endT, canMove)
   if source.IsEnemy and Menu.Get("Misc.AutoWI") and Taliyah.W:IsReady() and danger > 2 and Player:Distance(source.Position) <= Taliyah.W.Range then
-    if Input.Cast(SpellSlots.W,Player.Position,source.Position) then return true end
+    if Input.Cast(SpellSlots.W,-Player.Direction,source.Position) then return true end
   end
   return false
 end
