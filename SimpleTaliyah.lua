@@ -495,7 +495,7 @@ end
 function Taliyah.OnCastStop(sender, spell)
   if sender.IsMe and spell.Name == "TaliyahWVC" and Menu.Get("autoE") then
     local wPos = spell.EndPos
-    local wDir = wPos + (Player.Position - wPos) : Normalized()
+    local wDir = wPos + (Player.Position - wPos) : Normalized() * 200
     if Taliyah.E:IsReady() and Player.Mana > eMana then
       if Input.Cast(SpellSlots.E, wDir) then return true end
     end
