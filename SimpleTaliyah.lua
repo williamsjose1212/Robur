@@ -411,10 +411,10 @@ function Taliyah.LogicW()
     local enemies = Utils.CountHeroes(Player,700,"enemy")
     local wPred = Taliyah.W:GetPrediction(target)
     if (Combo and Player.Mana > wMana + eMana) or (Harass and Player.Mana > qMana*3 + wMana + eMana) and (Taliyah.E:IsReady() or Utils.CanKill(target,Taliyah.W,Taliyah.GetDamage(target)) or eIsOn or Taliyah.E:GetLevel() == 0 or Player.Health - incomingDamage < enemies * Player.Level * 15) then
-      if wPred and wPred.HitChanceEnum >= HitChanceEnum.High and Player:Distance(wPred.TargetPosition) > 420 and wPred.TargetPosition:Distance(wPred.CastPosition) <= 400 then
+      if wPred and wPred.HitChanceEnum >= HitChanceEnum.High and Player:Distance(wPred.TargetPosition) > 420 then
         if Input.Cast(SpellSlots.W,Player.Position,wPred.CastPosition) then return true end
       end
-      if wPred and wPred.HitChanceEnum >= HitChanceEnum.High and Player:Distance(wPred.TargetPosition) < 420 and wPred.TargetPosition:Distance(wPred.CastPosition) <= 400 then
+      if wPred and wPred.HitChanceEnum >= HitChanceEnum.High and Player:Distance(wPred.TargetPosition) < 420 then
         if Input.Cast(SpellSlots.W,-Player.Direction,wPred.CastPosition) then return true end
       end
     end
@@ -423,10 +423,10 @@ function Taliyah.LogicW()
 end
 
 function Taliyah.LogicE()
-  local target = TS:GetTarget(950)
+  local target = TS:GetTarget(Taliyah.E.Range)
   if Utils.IsValidTarget(target) and (not Taliyah.W:IsReady() or Taliyah.W:GetLevel() == 0) then
     local ePred = Taliyah.E:GetPrediction(target)
-    if (Combo and Player.Mana > eMana) or (Harass and Player.Mana > qMana*2 + wMana + eMana) and Player.Position:DistanceSqr(target) < (Taliyah.E.Range+100)*(Taliyah.E.Range+100) then
+    if (Combo and Player.Mana > eMana) or (Harass and Player.Mana > qMana*2 + wMana + eMana) then
       if ePred and ePred.HitChanceEnum >= HitChanceEnum.High then
         if Input.Cast(SpellSlots.E, ePred.TargetPosition) then return true end
       end
