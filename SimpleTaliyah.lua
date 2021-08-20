@@ -71,8 +71,8 @@ Taliyah.Q = SpellLib.Skillshot({
 Taliyah.W = SpellLib.Skillshot({
   Slot = SpellSlots.W,
   Range = 900,
-  Delay = 1,
-  Radius = 200,
+  Delay = 0.85,
+  Radius = 185,
   Type = "Circular",
   Key = "W"
 })
@@ -411,10 +411,10 @@ function Taliyah.LogicW()
     local enemies = Utils.CountHeroes(Player,700,"enemy")
     local wPred = Taliyah.W:GetPrediction(target)
     if (Combo and Player.Mana > wMana + eMana) or (Harass and Player.Mana > qMana*3 + wMana + eMana) and (Taliyah.E:IsReady() or Utils.CanKill(target,Taliyah.W,Taliyah.GetDamage(target)) or eIsOn or Taliyah.E:GetLevel() == 0 or Player.Health - incomingDamage < enemies * Player.Level * 15) then
-      if wPred and wPred.HitChanceEnum >= HitChanceEnum.High and Player:Distance(wPred.TargetPosition) > 420 and wPred.TargetPosition:Distance(wPred.CastPosition) <= 400  then
+      if wPred and wPred.HitChanceEnum >= HitChanceEnum.High and Player:Distance(wPred.TargetPosition) > 420 then
         if Input.Cast(SpellSlots.W,Player.Position,wPred.CastPosition) then return true end
       end
-      if wPred and wPred.HitChanceEnum >= HitChanceEnum.High and Player:Distance(wPred.TargetPosition) < 420 and wPred.TargetPosition:Distance(wPred.CastPosition) <= 400 then
+      if wPred and wPred.HitChanceEnum >= HitChanceEnum.High and Player:Distance(wPred.TargetPosition) < 420 then
         if Input.Cast(SpellSlots.W,-Player.Direction,wPred.CastPosition) then return true end
       end
     end
@@ -426,9 +426,9 @@ function Taliyah.LogicE()
   local target = TS:GetTarget(Taliyah.E.Range)
   if Utils.IsValidTarget(target) and (not Taliyah.W:IsReady() or Taliyah.W:GetLevel() == 0) then
     local ePred = Taliyah.E:GetPrediction(target)
-    if (Combo and Player.Mana > eMana) or (Harass and Player.Mana > qMana*2 + wMana + eMana) then
-      if ePred and ePred.HitChanceEnum >= HitChanceEnum.High then
-        if Input.Cast(SpellSlots.E, ePred.TargetPosition) then return true end
+    if (Combo and Player.Mana > eMana) or (Harass and Player.Mana > qMana*2 + wMana + eMana) and Player.Position:DistanceSqr(target) < (Taliyah.E.Range+100)*(Taliyah.E.Range+100) then
+      if ePred and ePred.HitChanceEnum >= HitChanceEnum.VeryHigh then
+        if Input.Cast(SpellSlots.E, ePred.CastPosition) then return true end
       end
     end
   end
@@ -492,10 +492,32 @@ function Taliyah.OnInterruptibleSpell(source, spell, danger, endT, canMove)
   return false
 end
 
+function Taliyah.OnProcessSpell(sender, spell)
+  if sender.IsMe and spell.Name == "TaliyahWVC" and Menu.Get("autoE") then
+    local wPos = spell.EndPos
+    local wDir = wPos + (Player.Position - wPos) : Normalized()*200
+    if Taliyah.E:IsReady() and Player.Mana > eMana then
+      if Input.Cast(SpellSlots.E, wDir) then return true end
+    end
+  end
+  return false
+end
+
+function Taliyah.OnSpellCast(sender, spell)
+  if sender.IsMe and spell.Name == "TaliyahWVC" and Menu.Get("autoE") then
+    local wPos = spell.EndPos
+    local wDir = wPos + (Player.Position - wPos) : Normalized()*200
+    if Taliyah.E:IsReady() and Player.Mana > eMana then
+      if Input.Cast(SpellSlots.E, wDir) then return true end
+    end
+  end
+  return false
+end
+
 function Taliyah.OnCastStop(sender, spell)
   if sender.IsMe and spell.Name == "TaliyahWVC" and Menu.Get("autoE") then
     local wPos = spell.EndPos
-    local wDir = wPos + (Player.Position - wPos) : Normalized() * 200
+    local wDir = wPos + (Player.Position - wPos) : Normalized()*200
     if Taliyah.E:IsReady() and Player.Mana > eMana then
       if Input.Cast(SpellSlots.E, wDir) then return true end
     end
@@ -546,12 +568,7 @@ function Taliyah.OnDeleteObject(obj)
   end
   return false
 end
--- function Taliyah.OnSpellCast(sender,spell)
--- if sender.IsMe and not spell.IsBasicAttack then
--- if printf(spell.MissileSpeed) then return true end
--- end
--- return false
--- end
+
 function Taliyah.OnDraw()
   if Player.IsVisible and Player.IsOnScreen and not Player.IsDead then
     local Pos = Player.Position
