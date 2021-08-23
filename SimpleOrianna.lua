@@ -81,7 +81,7 @@ Orianna.E = SpellLib.Targeted({
 Orianna.R = SpellLib.Active({
   Slot = SpellSlots.R,
   Range = 400,
-  Radius = 415,
+  Radius = 360,
   Delay = 0.4,
   Speed = math_huge,
   Key = "R"
@@ -484,7 +484,7 @@ function Orianna.LogicR()
   for k, target in pairs(targets) do
     if Utils.IsValidTarget(target) then
       if BallPos:Distance(target.Position) < Orianna.R.Radius and BallPos:Distance(target.Position) < Orianna.R.Radius then
-        if Menu.Get("rKS") and Utils.CanKill(target,Orianna.R.Delay,Orianna.GetDamage(target)) then
+        if Menu.Get("rKS") and Utils.CanKill(target,Orianna.R.Delay,Orianna.R:GetDamage(target)+Orianna.Q:GetDamage(target)) then
           if Orianna.R:Cast() then return true end
         end
         if Menu.Get("rLifeSaver") and Player.Health < Utils.CountHeroes(Player.Position,800,"enemy") * Player.Level * 20 and Player:Distance(BallPos) > target:Distance(Player.Position) then
@@ -586,7 +586,7 @@ function Orianna.GetDamage(target)
   if Orianna.R:IsReady() then
     dmg = dmg + DamageLib.CalculateMagicalDamage(Player, target, 125+75*Player.Level+0.8*Player.TotalAP)
   end
-  return dmg
+  return dmg/1.3
 end
 
 function Orianna.OnDrawDamage(target, dmgList)
