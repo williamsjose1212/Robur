@@ -56,7 +56,6 @@ Karma.Q = SpellLib.Skillshot({
   Delay = 0.25,
   Speed = 1700,
   Radius = 60,
-  EffectRadius = 280,
   Collisions = {Minions = true, WindWall = true },
   Type = "Linear",
   Key = "Q"
@@ -67,7 +66,7 @@ Karma.Q2 = SpellLib.Skillshot({
   Delay = 0.25,
   Speed = 1700,
   Radius = 120,
-  EffectRadius = 560,
+  EffectRadius = 280,
   Collisions = {Minions = true, WindWall = true },
   Type = "Linear",
   Key = "Q"
@@ -215,11 +214,11 @@ function Utils.CountEnemiesInRange(pos, range, t)
   return res
 end
 
-function Utils.CountHeroes(pos,Range,type)
+function Utils.CountHeroes(pos,range,team)
   local num = 0
-  for k, v in ipairs(ObjectManager.Get(type, "heroes")) do
+  for k, v in pairs(ObjectManager.Get(team, "heroes")) do
     local hero = v.AsHero
-    if hero and hero.IsTargetable and hero:Distance(pos.Position) < Range then
+    if hero.IsValid and not hero.IsDead and hero.IsTargetable and hero:Distance(pos) < range then
       num = num + 1
     end
   end
@@ -316,9 +315,9 @@ function Karma.LogicQ()
         if qPred ~= nil and qPred.HitChanceEnum >= HitChanceEnum.VeryHigh then
           if Karma.Q:Cast(qPred.CastPosition) then return true end
         end
-      elseif Utils.HasBuff(Player,"KarmaMantra") and Utils.CountEnemiesInRange(Player,1200) < 3 then
+      elseif Utils.HasBuff(Player,"KarmaMantra") and Utils.CountHeroes(Player.Position,800, "Enemy") < 3 then
         if qPred2 ~= nil and qPred2.HitChanceEnum >= HitChanceEnum.Medium then
-          if Karma.Q2:Cast(qPred2.CastPosition) then return true end
+          if Karma.Q2:Cast(qPred2.TargetPosition) then return true end
         end
       end
     end
@@ -391,7 +390,7 @@ end
 function Karma.LogicW()
   if (Combo and Menu.Get("Combo.W") and Player.Mana > qMana+wMana) or (Harass and Menu.Get("Harass.W") and Player.Mana > (eMana + qMana + wMana)*4) then
     for k, enemy in ipairs(Utils.GetTargets(Karma.W)) do
-      if not Utils.HasBuff(Player,"KarmaMantra") or ((Player.Health/Player.MaxHealth) * 100 < 20 and  Utils.CountHeroes(Player,800, "Ally") < 2) and Player:Distance(enemy) < 600 then
+      if not Utils.HasBuff(Player,"KarmaMantra") or ((Player.Health/Player.MaxHealth) * 100 < 20 and  Utils.CountHeroes(Player.Position,800, "Ally") < 2) and Player:Distance(enemy) < 600 then
         if Karma.W:Cast(enemy) then return true end
       end
     end
@@ -402,7 +401,7 @@ end
 function Karma.LogicE()
   if (Combo and Menu.Get("Combo.E") and Player.Mana > eMana+qMana) or (Harass and Menu.Get("Harass.E") and Player.Mana > (eMana + qMana + wMana)*4) then
     for k, enemy in ipairs(Utils.GetTargets(Karma.Q)) do
-      if Menu.Get("1" .. Player.CharName) and Utils.HasBuff(enemy,"KarmaSpiritBind") or (Utils.HasBuff(Player,"KarmaMantra") and (Utils.CountEnemiesInRange(Player,1200) >= 3 or Utils.CountHeroes(Player,700,"ally") >= 3)) then
+      if Menu.Get("1" .. Player.CharName) and Utils.HasBuff(enemy,"KarmaSpiritBind") or (Utils.HasBuff(Player,"KarmaMantra") and (Utils.CountHeroes(Player.Position,800, "Enemy") >= 3 or Utils.CountHeroes(Player,700,"ally") >= 3)) then
         if Karma.E:Cast(Player) then return true end
       end
     end
