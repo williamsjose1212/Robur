@@ -383,7 +383,7 @@ end
 
 function Utils.CanKill(target,delay,dmg)
   local predHp = HPred.GetHealthPrediction(target,delay,false)
-  local incomingDamage = HPred.GetDamagePrediction(target,1,false)
+  local incomingDamage = HPred.GetDamagePrediction(target,1,ftrue)
   if incomingDamage > target.Health then return false end
   if predHp < dmg then
     return true
@@ -484,7 +484,7 @@ function Orianna.LogicR()
   for k, target in pairs(targets) do
     if Utils.IsValidTarget(target) then
       if BallPos:Distance(target.Position) < Orianna.R.Radius and BallPos:Distance(target.Position) < Orianna.R.Radius then
-        if Menu.Get("rKS") and Utils.CanKill(target,Orianna.R.Delay,Orianna.R:GetDamage(target)+Orianna.Q:GetDamage(target)) then
+        if Menu.Get("rKS") and Utils.CanKill(target,Orianna.R.Delay,Orianna.R:GetDamage(target)+Orianna.Q:GetDamage(target)+(DamageLib.GetAutoAttackDamage(target,true)*2)+Orianna.W:GetDamage(target)) then
           if Orianna.R:Cast() then return true end
         end
         if Menu.Get("rLifeSaver") and Player.Health < Utils.CountHeroes(Player.Position,800,"enemy") * Player.Level * 20 and Player:Distance(BallPos) > target:Distance(Player.Position) then
