@@ -515,7 +515,7 @@ function Orianna.Farm()
     if minions > monsters and Player.Mana > qMana + wMana + eMana + rMana then
       local minionFocus = Utils.GetPriorityMinion(Player.Position, "enemy",Orianna.Q.Range)
       if minionFocus == nil then return false end
-      local qDmg = DamageLib.CalculateMagicalDamage(Player, minionFocus, 30+30*Player.Level+0.5*Player.TotalAP)
+      local qDmg = Orianna.Q:GetDamage(minionFocus)
       local hitCount = Utils.CircularCastMinionPos(Player.Position, "enemy",Orianna.Q.Range,Orianna.Q,175).hitCount
       local qPos = Utils.CircularCastMinionPos(Player.Position, "enemy", Orianna.Q.Range,Orianna.Q,175).spellPos
       if Orianna.Q:IsReady() and Menu.Get("qFarm") and Player:Distance(minionFocus) > Orbwalker.GetTrueAutoAttackRange() and minionFocus.Health < qDmg then
@@ -531,7 +531,7 @@ function Orianna.Farm()
       local minionFocus = Utils.GetPriorityMinion(Player.Position, "neutral", Orianna.Q.Range)
       if minionFocus == nil then return false end
       if Orianna.Q:IsReady() and Player.Mana > qMana and Menu.Get("qFarm") then
-        if Orianna.Q:Cast(Utils.CircularCastMinionPos(Player.Position, "enemy", Orianna.Q.Range,Orianna.Q,175).spellPos) then return true end
+        if Orianna.Q:Cast(minionFocus.Position) then return true end
       end
       if Orianna.W:IsReady() and Menu.Get("wFarm") and not Harass and minionFocus:Distance(BallPos) <= Orianna.W.Range then
         if Orianna.W:Cast() then return true end
