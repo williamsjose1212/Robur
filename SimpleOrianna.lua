@@ -58,7 +58,7 @@ local eIsOn = false
 local BallPos = Vector(0,0,0)
 Orianna.Q = SpellLib.Skillshot({
   Slot = SpellSlots.Q,
-  Range = 895,
+  Range = 1000,
   Delay = 0.05,
   Speed = 1400,
   Radius = 70,
@@ -68,7 +68,7 @@ Orianna.Q = SpellLib.Skillshot({
 
 Orianna.W = SpellLib.Active({
   Slot = SpellSlots.W,
-  Range = 225,
+  Range = 250,
   Key = "W"
 })
 
@@ -81,7 +81,7 @@ Orianna.E = SpellLib.Targeted({
 Orianna.R = SpellLib.Active({
   Slot = SpellSlots.R,
   Range = 400,
-  Radius = 390,
+  Radius = 400,
   Delay = 0.4,
   Speed = math_huge,
   Key = "R"
@@ -383,7 +383,7 @@ end
 
 function Utils.CanKill(target,delay,dmg)
   local predHp = HPred.GetHealthPrediction(target,delay,false)
-  local incomingDamage = HPred.GetDamagePrediction(target,1,ftrue)
+  local incomingDamage = HPred.GetDamagePrediction(target,1,true)
   if incomingDamage > target.Health then return false end
   if predHp < dmg then
     return true
@@ -393,8 +393,8 @@ end
 
 function Orianna.CountEnemiesInRangeDelay(pos,range,delay)
   local count = 0
-  local enemies = TS:GetTargets(1500)
-  for k, target in pairs(enemies) do
+  for k, enemy in pairs(ObjectManager.Get("enemy", "heroes")) do
+    local target = enemy.AsHero
     if Utils.IsValidTarget(target) then
       local pred = target:FastPrediction(delay)
       if pos:Distance(pred) < range then
@@ -484,7 +484,7 @@ function Orianna.LogicR()
   for k, target in pairs(targets) do
     if Utils.IsValidTarget(target) then
       if BallPos:Distance(target.Position) < Orianna.R.Radius and BallPos:Distance(target.Position) < Orianna.R.Radius then
-        if Menu.Get("rKS") and Utils.CanKill(target,Orianna.R.Delay,Orianna.R:GetDamage(target)+Orianna.Q:GetDamage(target)+(DamageLib.GetAutoAttackDamage(target,true)*2)+Orianna.W:GetDamage(target)) then
+        if Menu.Get("rKS") and Utils.CanKill(target,Orianna.R.Delay,Orianna.R:GetDamage(target)+Orianna.Q:GetDamage(target)+(DamageLib.GetAutoAttackDamage(target)*2)+Orianna.W:GetDamage(target)) then
           if Orianna.R:Cast() then return true end
         end
         if Menu.Get("rLifeSaver") and Player.Health < Utils.CountHeroes(Player.Position,800,"enemy") * Player.Level * 20 and Player:Distance(BallPos) > target:Distance(Player.Position) then
@@ -504,6 +504,8 @@ function Orianna.LogicR()
         end
       end
     end
+  elseif Orianna.CountEnemiesInRangeDelay(BallPos,Orianna.R.Radius,Orianna.R.Delay) >= Menu.Get("rCount") then
+    if Orianna.R:Cast() then return true end
   end
   return false
 end
@@ -622,9 +624,6 @@ function Orianna.OnUpdate()
     if Utils.HasBuff(ally,"orianaghostself") or Utils.HasBuff(ally,"orianaghost") then
       BallPos = ally.Position
     end
-  end
-  if Orianna.CountEnemiesInRangeDelay(BallPos,Orianna.R.Radius,Orianna.R.Delay) >= Menu.Get("rCount") and Orianna.R:IsReady() then
-    if Orianna.R:Cast() then return true end
   end
   if Utils.NoLag(0)  then
     if Orianna.Farm() then return true end
