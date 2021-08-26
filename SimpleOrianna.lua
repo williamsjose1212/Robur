@@ -484,7 +484,7 @@ function Orianna.LogicR()
   for k, target in pairs(targets) do
     if Utils.IsValidTarget(target) then
       if BallPos:Distance(target.Position) < Orianna.R.Radius and BallPos:Distance(target.Position) < Orianna.R.Radius then
-        if Menu.Get("rKS") and Utils.CanKill(target,Orianna.R.Delay,Orianna.R:GetDamage(target)+Orianna.Q:GetDamage(target)+(DamageLib.GetAutoAttackDamage(target)*2)+Orianna.W:GetDamage(target)) then
+        if Menu.Get("rKS") and Utils.CanKill(target,Orianna.R.Delay,Orianna.R:GetDamage(target)+Orianna.Q:GetDamage(target)*2+(DamageLib.GetAutoAttackDamage(target)*2)+Orianna.W:GetDamage(target)) then
           if Orianna.R:Cast() then return true end
         end
         if Menu.Get("rLifeSaver") and Player.Health < Utils.CountHeroes(Player.Position,800,"enemy") * Player.Level * 20 and Player:Distance(BallPos) > target:Distance(Player.Position) then
@@ -588,7 +588,7 @@ function Orianna.GetDamage(target)
   if Orianna.R:IsReady() then
     dmg = dmg + DamageLib.CalculateMagicalDamage(Player, target, 125+75*Player.Level+0.8*Player.TotalAP)
   end
-  return dmg/1.3
+  return dmg/1.4
 end
 
 function Orianna.OnDrawDamage(target, dmgList)
