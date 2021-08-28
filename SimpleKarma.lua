@@ -315,7 +315,7 @@ function Karma.LogicQ()
     if Utils.IsValidTarget(target) and not Utils.HasBuff(Player,"KarmaMantra") and (not Karma.R:IsReady() or not Menu.Get("Combo.R")) then
       local qPred = Karma.Q:GetPrediction(target)
       if qPred then
-        if qPred.HitChanceEnum >= HitChanceEnum.High then
+        if qPred.HitChanceEnum >= HitChanceEnum.VeryHigh then
           if Karma.Q:Cast(qPred.CastPosition) then return true end
         else
           local fc = Karma.Q:GetFirstCollision(Player.Position,qPred.CastPosition,"enemy").Positions
