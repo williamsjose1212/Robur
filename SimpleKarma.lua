@@ -447,7 +447,7 @@ function Karma.LogicR()
   if (Combo and Menu.Get("Combo.R") and Player.Mana > qMana) or (Harass and Menu.Get("Harass.R") and Player.Mana > (eMana + qMana + wMana)*4) or (Waveclear and Menu.Get("WaveClear.R") and Player.Mana > (eMana + qMana + wMana)*3) then
     for k, enemy in ipairs(Utils.GetTargets(Karma.Q)) do
       local qPred = Karma.Q2:GetPrediction(enemy)
-      if Utils.HasBuff(enemy,"KarmaSpiritBind") or (Karma.Q:IsReady() and qPred) then
+      if Utils.HasBuff(enemy,"KarmaSpiritBind") or (Karma.Q:IsReady() and qPred and qPred.HitChanceEnum >= HitChanceEnum.Low) then
         if Karma.R:Cast() then return true end
       end
     end
