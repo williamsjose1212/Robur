@@ -55,8 +55,10 @@ Karma.Q = SpellLib.Skillshot({
   Range = 950,
   Delay = 0.25,
   Speed = 1700,
-  Radius = 60,
+  Radius = 120,
+  EffectRadius = 280,
   Collisions = {Minions = true, WindWall = true },
+  UseHitbox = true,
   Type = "Linear",
   Key = "Q"
 })
@@ -128,7 +130,7 @@ function Utils.SetMana()
 end
 
 function Utils.GetTargets(Spell)
-  return {TS:GetTarget(Spell.Range,true)}
+  return {TS:GetTarget(Spell.Range,false)}
 end
 
 function Utils.GetTargetsRange(Range)
@@ -308,16 +310,34 @@ end
 
 function Karma.LogicQ()
   if (Combo and Menu.Get("Combo.Q") and Player.Mana > qMana) or (Harass and Menu.Get("Harass.Q") and Player.Mana > (eMana + qMana + wMana)*4) then
-    for k, enemy in ipairs(Utils.GetTargets(Karma.Q)) do
-      local qPred = Karma.Q:GetPrediction(enemy)
-      local qPred2 = Karma.Q2:GetPrediction(enemy)
-      if not Utils.HasBuff(Player,"KarmaMantra") and (not Karma.R:IsReady() or not Menu.Get("Combo.R"))  then
-        if qPred ~= nil and qPred.HitChanceEnum >= HitChanceEnum.VeryHigh then
+    local target = TS:GetTarget(Karma.Q.Range)
+    local target2 = TS:GetTarget(Karma.Q2.Range)
+    if Utils.IsValidTarget(target) and not Utils.HasBuff(Player,"KarmaMantra") and (not Karma.R:IsReady() or not Menu.Get("Combo.R")) then
+      local qPred = Karma.Q:GetPrediction(target)
+      if qPred then
+        if qPred.HitChanceEnum >= HitChanceEnum.High then
           if Karma.Q:Cast(qPred.CastPosition) then return true end
+        else
+          local fc = Karma.Q:GetFirstCollision(Player.Position,qPred.CastPosition,"enemy").Positions
+          for _, v in pairs(fc) do
+            if v:Distance(qPred.TargetPosition) < 280 then
+              if Karma.Q:Cast(qPred.CastPosition) then return true end
+            end
+          end
         end
-      elseif Utils.HasBuff(Player,"KarmaMantra") and Utils.CountHeroes(Player.Position,800, "Enemy") < 3 then
-        if qPred2 ~= nil and qPred2.HitChanceEnum >= HitChanceEnum.Medium then
-          if Karma.Q2:Cast(qPred2.TargetPosition) then return true end
+      end
+    elseif Utils.IsValidTarget(target2) and Utils.HasBuff(Player,"KarmaMantra") and Utils.CountHeroes(Player.Position,800, "Enemy") < 3 then
+      local qPred2 = Karma.Q2:GetPrediction(target2)
+      if qPred2 then
+        if qPred2.HitChanceEnum >= HitChanceEnum.High then
+          if Karma.Q2:Cast(qPred2.CastPosition) then return true end
+        else
+          local fc = Karma.Q2:GetFirstCollision(Player.Position,qPred2.CastPosition,"enemy").Positions
+          for _, v in pairs(fc) do
+            if v:Distance(qPred2.TargetPosition) <= 280 then
+              if Karma.Q2:Cast(qPred2.CastPosition) then return true end
+            end
+          end
         end
       end
     end
@@ -401,7 +421,7 @@ end
 function Karma.LogicE()
   if (Combo and Menu.Get("Combo.E") and Player.Mana > eMana+qMana) or (Harass and Menu.Get("Harass.E") and Player.Mana > (eMana + qMana + wMana)*4) then
     for k, enemy in ipairs(Utils.GetTargets(Karma.Q)) do
-      if Menu.Get("1" .. Player.CharName) and Utils.HasBuff(enemy,"KarmaSpiritBind") or (Utils.HasBuff(Player,"KarmaMantra") and (Utils.CountHeroes(Player.Position,800, "Enemy") >= 3 or Utils.CountHeroes(Player,700,"ally") >= 3)) then
+      if Menu.Get("1" .. Player.CharName) and (Utils.HasBuff(enemy,"KarmaSpiritBind") and not Utils.HasBuff(Player,"KarmaMantra")) or (Utils.HasBuff(Player,"KarmaMantra") and (Utils.CountHeroes(Player.Position,800, "Enemy") >= 3 or Utils.CountHeroes(Player,700,"ally") >= 3)) then
         if Karma.E:Cast(Player) then return true end
       end
     end
@@ -427,7 +447,7 @@ function Karma.LogicR()
   if (Combo and Menu.Get("Combo.R") and Player.Mana > qMana) or (Harass and Menu.Get("Harass.R") and Player.Mana > (eMana + qMana + wMana)*4) or (Waveclear and Menu.Get("WaveClear.R") and Player.Mana > (eMana + qMana + wMana)*3) then
     for k, enemy in ipairs(Utils.GetTargets(Karma.Q)) do
       local qPred = Karma.Q2:GetPrediction(enemy)
-      if Utils.HasBuff(enemy,"KarmaSpiritBind") or (Karma.Q:IsReady() and qPred ~= nil and qPred.HitChanceEnum >= HitChanceEnum.High) then
+      if Utils.HasBuff(enemy,"KarmaSpiritBind") or (Karma.Q:IsReady() and qPred) then
         if Karma.R:Cast() then return true end
       end
     end
