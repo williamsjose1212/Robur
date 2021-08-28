@@ -315,7 +315,7 @@ function Karma.LogicQ()
     if Utils.IsValidTarget(target) and not Utils.HasBuff(Player,"KarmaMantra") and (not Karma.R:IsReady() or not Menu.Get("Combo.R")) then
       local qPred = Karma.Q:GetPrediction(target)
       if qPred then
-        if qPred.HitChanceEnum >= HitChanceEnum.VeryHigh then
+        if qPred.HitChanceEnum >= HitChanceEnum.High then
           if Karma.Q:Cast(qPred.CastPosition) then return true end
         else
           local fc = Karma.Q:GetFirstCollision(Player.Position,qPred.CastPosition,"enemy").Positions
@@ -329,7 +329,7 @@ function Karma.LogicQ()
     elseif Utils.IsValidTarget(target2) and Utils.HasBuff(Player,"KarmaMantra") and Utils.CountHeroes(Player.Position,800, "Enemy") < 3 then
       local qPred2 = Karma.Q2:GetPrediction(target2)
       if qPred2 then
-        if qPred2.HitChanceEnum >= HitChanceEnum.High then
+        if qPred2.HitChanceEnum >= HitChanceEnum.VeryHigh then
           if Karma.Q2:Cast(qPred2.CastPosition) then return true end
         else
           local fc = Karma.Q2:GetFirstCollision(Player.Position,qPred2.CastPosition,"enemy").Positions
@@ -447,7 +447,7 @@ function Karma.LogicR()
   if (Combo and Menu.Get("Combo.R") and Player.Mana > qMana) or (Harass and Menu.Get("Harass.R") and Player.Mana > (eMana + qMana + wMana)*4) or (Waveclear and Menu.Get("WaveClear.R") and Player.Mana > (eMana + qMana + wMana)*3) then
     for k, enemy in ipairs(Utils.GetTargets(Karma.Q)) do
       local qPred = Karma.Q2:GetPrediction(enemy)
-      if Utils.HasBuff(enemy,"KarmaSpiritBind") or (Karma.Q:IsReady() and qPred and qPred.HitChanceEnum >= HitChanceEnum.Low) then
+      if Utils.HasBuff(enemy,"KarmaSpiritBind") or (Karma.Q:IsReady() and qPred ) then
         if Karma.R:Cast() then return true end
       end
     end
