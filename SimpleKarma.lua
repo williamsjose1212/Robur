@@ -329,7 +329,7 @@ function Karma.LogicQ()
     elseif Utils.IsValidTarget(target2) and Utils.HasBuff(Player,"KarmaMantra") and Utils.CountHeroes(Player.Position,800, "Enemy") < 3 then
       local qPred2 = Karma.Q2:GetPrediction(target2)
       if qPred2 then
-        if qPred2.HitChanceEnum >= HitChanceEnum.VeryHigh then
+        if qPred2.HitChanceEnum >= HitChanceEnum.High then
           if Karma.Q2:Cast(qPred2.CastPosition) then return true end
         else
           local fc = Karma.Q2:GetFirstCollision(Player.Position,qPred2.CastPosition,"enemy").Positions
